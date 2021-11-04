@@ -130,7 +130,7 @@ exit /b
 ::SetDefaults
 
 :SetMeta
-set "jsa_version=0.1.0"
+set "jsa_version=0.1.1"
 title Johnny the Sysadmin %jsa_version%
 exit /b
 ::SetMeta
@@ -654,7 +654,7 @@ if not defined cmIfts set "cmIfts=1"
 set /a "cmMsgLvl=cmClr"
 set "cmPre="
 set "cmSuf="
-if "%JSA_CM_COLOR_EN%" == "1" goto cmcontinue
+if "%JSA_CM_COLOR_EN%" == "0" goto cmcontinue
 if not defined cmClr goto cmcontinue
 if "%cmClr%" == "%cmMsgLvl%" goto cmcontinue
 if /i "%cmClr%" == "r" (
