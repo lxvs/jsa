@@ -130,7 +130,7 @@ exit /b
 ::SetDefaults
 
 :SetMeta
-set "jsa_version=0.1.1"
+set "jsa_version=0.1.2"
 title Johnny the Sysadmin %jsa_version%
 exit /b
 ::SetMeta
@@ -210,7 +210,7 @@ exit /b 1
 
 :Execute
 if /i "%op%" == "ipmi" goto ipmi_default
-if /i "%op%" == "cm" goto cmparse
+if /i "%op%" == "cm" goto cmparsepre
 if /i "%op%" == "custom" goto custom_cmd
 if /i "%op%" == "sol" goto solpre
 if /i "%op%" == "bios" goto ipmi_bios
@@ -438,7 +438,7 @@ explorer /select,"%solLfn%"
 exit /b
 ::ActSol
 
-:cmparse
+:cmparsepre
 set cmlegacy=
 set cm_log_input=
 set cm_ping_input=
@@ -446,6 +446,7 @@ set cm_web_input=
 set "cm_log=%JSA_CM_LOG_LEVEL%"
 set "cm_ping=%JSA_CM_PING_RETRY%"
 set "cm_web=%JSA_CM_WEB_RETRY%"
+:cmparse
 if /i "%~1" == "" goto postCmParse
 if /i "%~1" == "/legacy" (
     set "cmlegacy=1"
