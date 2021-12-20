@@ -530,8 +530,12 @@ if not defined cmlegacy (
 call:CmWrite "------------------------------------------------------" 0 0
 
 :cmloop
-ping %realhost% -n 1 -w %JSA_CM_PING_TIMEOUT_MS% 1>NUL 2>&1
-if %ErrorLevel% EQU 0 (
+for /f "skip=2 tokens=1-8 delims= " %%a in ('ping %realhost% -n 1 -w %JSA_CM_PING_TIMEOUT_MS%') do (
+    set "TtlSeg=%%f"
+    goto cm_loop_afterfor
+)
+:cm_loop_afterfor
+if /i "%TtlSeg:~0,3%" == "TTL" (
     call:CmWrite "ping: OK." 2
     if not defined cmCurrentStatus (
         set "cmCurrentStatus=g"
