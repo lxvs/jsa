@@ -614,7 +614,7 @@ exit /b
 set /a "cmPingRetried=%cmCurrentStatus:~-1%"
 set /a "cmPingRetried+=1"
 set "cmCurrentStatus=b%cmPingRetried%"
-if /i "%cmEwsStatus%" == "b" set /a "cmPingRetried=cm_ping"
+if /i "%cmEwsStatus:~0,1%" == "b" if /i "%cmEwsStatus%" NEQ "b" set /a "cmPingRetried=cm_ping"
 call:CmWrite "Ping failed, retried = %cmPingRetried%." 1
 if %cmPingRetried% GEQ %cm_ping% (
     set "cmPingRetried="
