@@ -806,6 +806,7 @@ exit /b
 :kvm_usage
 @echo;
 @echo jsa kvm [/h {hostname}] [/u {username}] [/p {password}] [/w {webport}] [-apptype StandAlone] [-localization/-lang Language] [-launch Application Type]
+exit /b
 ::kvm_usage
 
 :custom_usage
