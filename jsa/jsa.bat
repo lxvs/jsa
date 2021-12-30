@@ -1,5 +1,5 @@
 @echo off
-setlocal enableExtensions enableDelayedExpansion
+setlocal enableExtensions disableDelayedExpansion
 call:Prepare
 call:SetDefaults
 call:SetMeta
@@ -136,23 +136,34 @@ exit /b
 ::SetMeta
 
 :SetColor
-if "%JSA_GLOBAL_COLOR_EN%" == "0" (
-    set "cRed="
-    set "cGrn="
-    set "cYlw="
-    set "cBlu="
-    set "cMgt="
-    set "cCyn="
-    set "cSuf="
-) else (
-    @set "cRed=[91m"
-    @set "cGrn=[92m"
-    @set "cYlw=[93m"
-    @set "cBlu=[94m"
-    @set "cMgt=[95m"
-    @set "cCyn=[96m"
-    @set "cSuf=[0m"
-)
+if "%JSA_GLOBAL_COLOR_EN%" == "0" exit /b
+@set "cSuf=[0m"
+if /i "%JSA_IPMI_ECHO_COLOR%" == "red" (
+    @set "clr_e=[91m"
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "grn" (
+    @set "clr_e=[92m"
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "ylw" (
+    @set "clr_e=[93m"
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "blu" (
+    @set "clr_e=[94m"
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "mgt" (
+    @set "clr_e=[95m"
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "cyn" (
+    @set "clr_e=[96m"
+) else set clr_e=
+if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "red" (
+    @set "clr_c=[91m"
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "grn" (
+    @set "clr_c=[92m"
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "ylw" (
+    @set "clr_c=[93m"
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "blu" (
+    @set "clr_c=[94m"
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "mgt" (
+    @set "clr_c=[95m"
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "cyn" (
+    @set "clr_c=[96m"
+) else set clr_c=
 exit /b
 ::SetColor
 
@@ -226,7 +237,7 @@ set customFound=
 if /i "%op%" == "custom" set "op=%~1"
 if exist "%JSA_IPMI_CUSTOM_FOLDER%\%op%.txt" for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_FOLDER%\%op%.txt") do (
     if not defined customFound set "customFound=yes"
-    if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" echo !c%JSA_IPMI_CUSTOM_ECHO_COLOR%!ipmitool%paraI%%paraU%%paraP% -H %realhost% %%~i%cSuf%
+    if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" @echo %clr_c%ipmitool%paraI%%paraU%%paraP% -H %realhost% %%~i%cSuf%
     %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %%~i
 )
 if defined customFound exit /b
@@ -271,7 +282,7 @@ if /i "%~1" == "efi" (
     goto bdpstart
 )
 :postbdp
-if "%JSA_IPMI_ECHO_EN%" NEQ "0" @echo !c%JSA_IPMI_ECHO_COLOR%!ipmitool%paraI%%paraU%%paraP% -H %realhost% chassis bootdev %dev% %efiflag% %persflag% %bdargs%%cSuf%
+if "%JSA_IPMI_ECHO_EN%" NEQ "0" @echo %clr_e%ipmitool%paraI%%paraU%%paraP% -H %realhost% chassis bootdev %dev% %efiflag% %persflag% %bdargs%%cSuf%
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% chassis bootdev %dev% %efiflag% %persflag% %bdargs%
 exit /b
 ::bootdevparse
@@ -311,10 +322,13 @@ if /i "%loopmode%" == "mntr" (
 :cmd_loop_pre
 if not defined lom_int set lom_int=%JSA_LOOP_INTERVAL_S%
 :cmd_loop
-if "%JSA_LOOP_TIME_STAMP_EN%" NEQ "0" (
-    call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
-    @echo %cYlw%!lpYear!-!lpMon!-!lpDay! !lpHour!:!lpMin!:!lpSec!%cSuf%
-) else @echo;
+if "%JSA_LOOP_TIME_STAMP_EN%" == "0" (
+    @echo;
+    goto loop_skip_ts
+)
+call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
+@echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
+:loop_skip_ts
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args%
 call:Delay_s %lom_int%
 goto cmd_loop
@@ -324,23 +338,30 @@ goto cmd_loop
 if not defined lom_int set lom_int=%JSA_MNTR_INTERVAL_S%
 set "monLast=%TEMP%\ipmi-mon-last"
 set "monCurr=%TEMP%\ipmi-mon-current"
-if "%JSA_MNTR_TIME_STAMP_EN%" NEQ "0" (
-    call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
-    @echo %cYlw%!lpYear!-!lpMon!-!lpDay! !lpHour!:!lpMin!:!lpSec!%cSuf%
-) else @echo;
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args% 1>!monLast! 2>&1
-type !monLast!
+if "%JSA_MNTR_TIME_STAMP_EN%" == "0" (
+    @echo;
+    goto mntr_pre_skip_ts
+)
+call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
+@echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
+:mntr_pre_skip_ts
+%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args% 1>%monLast% 2>&1
+type %monLast%
 :cmd_mntr
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost%%lom_args% 1>%monCurr% 2>&1
-fc "%monCurr%" "%monLast%" 1>NUL 2>&1 || (
-    if "%JSA_MNTR_TIME_STAMP_EN%" NEQ "0" (
-        call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
-        @echo %cYlw%!lpYear!-!lpMon!-!lpDay! !lpHour!:!lpMin!:!lpSec!%cSuf%
-    ) else @echo;
-    type "%monCurr%"
-    move /Y "%monCurr%" "%monLast%" 1>NUL 2>&1
+fc "%monCurr%" "%monLast%" 1>NUL 2>&1 && (
+    call:Delay_s %lom_int%
+    goto cmd_mntr
 )
-call:Delay_s %lom_int%
+if "%JSA_MNTR_TIME_STAMP_EN%" == "0" (
+    @echo;
+    goto mntr_skip_ts
+)
+call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
+@echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
+:mntr_skip_ts
+type "%monCurr%"
+move /Y "%monCurr%" "%monLast%" 1>NUL 2>&1
 goto cmd_mntr
 ::cmd_mntr_pre
 
@@ -393,7 +414,7 @@ exit /b
 
 :ipmi_default
 if "%op%" == "ipmi" set op=
-if "%JSA_IPMI_ECHO_EN%" NEQ "0" echo !c%JSA_IPMI_ECHO_COLOR%!ipmitool%paraI%%paraU%%paraP% -H %realhost% %op%%args%%cSuf%
+if "%JSA_IPMI_ECHO_EN%" NEQ "0" echo %clr_e%ipmitool%paraI%%paraU%%paraP% -H %realhost% %op%%args%%cSuf%
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %op%%args%
 exit /b
 ::ipmi_default
