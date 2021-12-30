@@ -309,12 +309,12 @@ if "%~1" NEQ "" (
     shift
     goto lomparse
 )
-if /i "%loopmode%" == "mntr" (
+if /i "%lom%" == "mntr" (
     goto cmd_mntr_pre
-) else if /i "%loopmode%" == "loop" (
+) else if /i "%lom%" == "loop" (
     goto cmd_loop_pre
 ) else (
-    >&2 echo ERROR: invalid loop mode - %loopmode%
+    >&2 echo error: invalid mode: %lom%
     exit /b 1
 )
 ::lomstart
@@ -348,7 +348,7 @@ call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args% 1>%monLast% 2>&1
 type %monLast%
 :cmd_mntr
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost%%lom_args% 1>%monCurr% 2>&1
+%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args% 1>%monCurr% 2>&1
 fc "%monCurr%" "%monLast%" 1>NUL 2>&1 && (
     call:Delay_s %lom_int%
     goto cmd_mntr
