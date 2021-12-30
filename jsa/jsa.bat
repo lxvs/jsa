@@ -293,17 +293,17 @@ goto lomstart
 :ipmi_mntr
 set "lom=mntr"
 :lomstart
-shift
-set lom_int=
 if "%~1" == "" (
     >&2 echo ERROR: No command provided!
     exit /b 1
 )
+if "%~1" == "0" goto lomparse
 set /a "lom_int=%~1" 2>nul || goto lomparse
 if "%lom_int%" == "%~1" (
     shift
 )
 :lomparse
+if "%lom_int%" == "0" set lom_int=
 if "%~1" NEQ "" (
     set "lom_args=%lom_args% %~1"
     shift
