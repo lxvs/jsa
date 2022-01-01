@@ -1,3 +1,9 @@
+0.1.4 - 2022-01-01
+
+	* Fix that '!'s in arguments cannot be passed properly
+	* Fix feature monitor and loop
+	* Improve script help
+
 0.1.3 - 2021-12-20
 
 	* In CM, fix that ping is considered OK when the destination is
