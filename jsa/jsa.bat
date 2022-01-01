@@ -760,6 +760,11 @@ if defined op (
     if "%op%" == "custom" goto %op%_usage
     if "%op%" == "host" goto %op%_usage
     if "%op%" == "var" goto %op%_usage
+    if "%op%" == "loop" goto ipmi_usage
+    if "%op%" == "mntr" goto ipmi_usage
+    if "%op%" == "sol" goto ipmi_usage
+    if "%op%" == "br" goto ipmi_usage
+    if "%op%" == "bootdev" goto ipmi_usage
 )
 call:Logo
 goto main_usage
