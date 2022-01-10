@@ -130,7 +130,7 @@ exit /b
 ::SetDefaults
 
 :SetMeta
-set "jsa_version=0.1.4"
+set "jsa_version=0.1.5"
 title Johnny the Sysadmin %jsa_version%
 exit /b
 ::SetMeta
@@ -257,7 +257,6 @@ exit /b
 ::ipmi_br
 
 :bootdevparse
-shift
 set "dev=%~1"
 shift
 set efiflag=
