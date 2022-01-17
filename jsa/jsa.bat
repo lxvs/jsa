@@ -20,7 +20,7 @@ set intf=
 if "%~1" == "" goto postparse
 if /i "%~1" == "/h" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 needs a value.
+        >&2 echo error: %~1 needs a value.
         exit /b 1
     )
     set "host=%~2"
@@ -29,7 +29,7 @@ if /i "%~1" == "/h" (
     goto parse
 ) else if /i "%~1" == "/u" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 needs a value.
+        >&2 echo error: %~1 needs a value.
         exit /b 1
     )
     set "usrn=%~2"
@@ -38,7 +38,7 @@ if /i "%~1" == "/h" (
     goto parse
 ) else if /i "%~1" == "/p" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 needs a value.
+        >&2 echo error: %~1 needs a value.
         exit /b 1
     )
     set "pswd=%~2"
@@ -47,7 +47,7 @@ if /i "%~1" == "/h" (
     goto parse
 ) else if /i "%~1" == "/i" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 needs a value.
+        >&2 echo error: %~1 needs a value.
         exit /b 1
     )
     set "intf=%~2"
@@ -173,7 +173,8 @@ if not defined host (
         set "realhost=%JSA_DEF_HOSTNAME%"
         exit /b 0
     )
-    >&2 echo ERROR: No hostname specified.
+    >&2 echo error: no hostname specified
+    >&2 echo Try 'jsa /?' for help.
     exit /b 1
 )
 echo %host% | findstr /r /c:"^[0-9.]* $" 1>nul 2>&1 || (
@@ -195,7 +196,7 @@ for /f "delims=. tokens=1-4,*" %%a in ("%~1") do (
 )
 :afterhostparse
 if defined sece (
-    >&2 echo ERROR: Specified IP address %host% has more than 4 sections.
+    >&2 echo error: Specified IP address %host% has more than 4 sections.
     exit /b 1
 )
 if defined secd (
@@ -214,8 +215,9 @@ if defined seca if defined prec (
     set "realhost=%prea%.%preb%.%prec%.%host%"
     exit /b 0
 )
->&2 echo ERROR: Parsed IP has less than 4 sections.
+>&2 echo error: Parsed IP has less than 4 sections.
 >&2 echo JSA_IP_PREF = %JSA_IP_PREF%
+>&2 echo Try 'jsa host /?' for more information.
 exit /b 1
 ::ParseHost
 
@@ -293,7 +295,8 @@ goto lomstart
 set "lom=mntr"
 :lomstart
 if "%~1" == "" (
-    >&2 echo ERROR: No command provided!
+    >&2 echo error: no command provided
+    >&2 echo Try 'jsa /?' for help.
     exit /b 1
 )
 if "%~1" == "0" goto lomparse
@@ -384,7 +387,7 @@ if /i "%solArg:~-4%" == ".log" (
 set kvm_wp=
 set kvm_args=
 if not exist "%JSA_JVIEWER%" (
-    >&2 echo ERROR: Could not find JViewer.jar in %JSA_JVIEWER%
+    >&2 echo error: unable to find JViewer.jar in %JSA_JVIEWER%
     >&2 echo Please defined the path to JViewer.jar in variable 'JSA_JVIEWER'.
     exit /b 1
 )
@@ -392,7 +395,7 @@ if not exist "%JSA_JVIEWER%" (
 if "%~1" == "" goto kvmstart
 if /i "%~1" == "/w" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 requires a value.
+        >&2 echo error: %~1 requires a value.
         exit /b 1
     )
     set /a "kvm_wp=%~2"
@@ -436,23 +439,22 @@ set "solow="
 set /p "solow=%solLfn% exists, overwrite it? (Y/n): "
 if /i "%solow%" == "y" (
     del /f "%solLfn%" || (
-        >&2 echo ERROR: SOL: Failed to delete file %solLfn%
+        >&2 echo error: Failed to delete file %solLfn%
         exit /b 1
     )
 ) else (
-    >&2 echo SOL: User aborted."
     exit /b 1
 )
 :sol_continue
-@echo SOL: Deactivating...
+@echo deactivating previous SOL session ^(if any^)...
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% sol deactivate 1>nul 2>&1
 if not defined solLfn (call:GenLogFilename %realhost% solLfn 1)
 @type nul >"%solLfn%" || (
-    >&2 echo ERROR: SOL: Cannot create log file.
+    >&2 echo error: unable to create log file
     >&2 echo Please change a directory or run as administrator.
     exit /b 1
 )
-@echo SOL: Activated SOL, saving to %SolLfn%
+@echo Activated SOL, saving to %SolLfn%
 explorer /select,"%solLfn%"
 %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% sol activate 1>"%solLfn%" 2>&1
 exit /b
@@ -475,7 +477,7 @@ if /i "%~1" == "/legacy" (
 )
 if /i "%~1" == "/log" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 requires a value.
+        >&2 echo error: %~1 requires a value.
         exit /b 1
     )
     set "cm_log_input=%~2"
@@ -485,7 +487,7 @@ if /i "%~1" == "/log" (
 )
 if /i "%~1" == "/ping" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 requires a value.
+        >&2 echo error: %~1 requires a value.
         exit /b 1
     )
     set "cm_ping_input=%~2"
@@ -495,7 +497,7 @@ if /i "%~1" == "/ping" (
 )
 if /i "%~1" == "/web" (
     if "%~2" == "" (
-        >&2 echo ERROR: %~1 requires a value.
+        >&2 echo error: %~1 requires a value.
         exit /b 1
     )
     set "cm_web_input=%~2"
@@ -503,7 +505,8 @@ if /i "%~1" == "/web" (
     shift
     goto cmparse
 )
->&2 echo ERROR: Invalid switch - %~1
+>&2 echo error: invalid switch: %~1
+>&2 echo Try 'jsa /?' for help.
 exit /b 1
 :postCmParse
 set /a "cm_log_input_a=cm_log_input"
@@ -512,17 +515,17 @@ set /a "cm_web_input_a=cm_web_input"
 if defined cm_log_input if "%cm_log_input_a%" == "%cm_log_input%" (
     set /a "cm_log=cm_log_input_a"
 ) else (
-    >&2 echo Warning: Parameter log_level was designated but did not applied.
+    >&2 echo warning: Parameter log_level was designated but did not applied.
 )
 if defined cm_ping_input if "%cm_ping_input_a%" == "%cm_ping_input%" (
     set /a "cm_ping=cm_ping_input_a"
 ) else (
-    >&2 echo Warning: Parameter ping_retry was designated but did not applied.
+    >&2 echo warning: Parameter ping_retry was designated but did not applied.
 )
 if defined cm_web_input if "%cm_web_input_a%" == "%cm_web_input%" (
     set /a "cm_web=cm_web_input_a"
 ) else (
-    >&2 echo Warning: Parameter web_retry was designated but did not applied.
+    >&2 echo warning: Parameter web_retry was designated but did not applied.
 )
 title Johnny the Sysadmin %jsa_version% - CM %realhost%
 if not exist "%JSA_CM_LOG_FOLDER%" md "%JSA_CM_LOG_FOLDER%"
@@ -559,14 +562,14 @@ if /i "%TtlSeg:~0,3%" == "TTL" (
     call:CmWrite "ping: OK." 2
     if not defined cmCurrentStatus (
         set "cmCurrentStatus=g"
-        if not defined cmlegacy call:CmWrite "DEBUG: calling GHC because status is not defined." 8
+        if not defined cmlegacy call:CmWrite "debug: calling GHC because status is not defined." 8
         if not defined cmlegacy (call:CmGetHttpCode) else call:CmWrite "%cmPingOrgG%" g
         call:Delay_s 1
         goto cmloop
     )
     if /i "%cmCurrentStatus%" == "b" (
         set "cmCurrentStatus=g"
-        if not defined cmlegacy call:CmWrite "DEBUG: calling GHC because status turns good." 8
+        if not defined cmlegacy call:CmWrite "debug: calling GHC because status turns good." 8
         if not defined cmlegacy (call:CmGetHttpCode) else call:CmWrite "%cmPingTrnG%" g
         call:Delay_s 1
         goto cmloop
@@ -574,12 +577,12 @@ if /i "%TtlSeg:~0,3%" == "TTL" (
     if /i "%cmCurrentStatus:~0,1%" == "b" (
         set "cmCurrentStatus=g"
         call:CmWrite "Just jitters, ignored." 1
-        if not defined cmlegacy call:CmWrite "DEBUG: calling GHC because of jitters." 8
+        if not defined cmlegacy call:CmWrite "debug: calling GHC because of jitters." 8
         if not defined cmlegacy call:CmGetHttpCode
         call:Delay_s 1
         goto cmloop
     )
-    if not defined cmlegacy call:CmWrite "DEBUG: calling GHC mandatorily." 8
+    if not defined cmlegacy call:CmWrite "debug: calling GHC mandatorily." 8
     if not defined cmlegacy call:CmGetHttpCode
     call:Delay_s 1
     goto cmloop
@@ -597,8 +600,8 @@ if %cm_ping% GTR 0 (
 
 :CmGetHttpCode
 for /f %%i in ('curl -m %JSA_CM_WEB_TIMEOUT_S% -so /dev/null -Iw %%{http_code} %realhost%') do (
-    call:CmWrite "DEBUG: HTTP code updated:   %cmLastHttpCode% to %%i" 8
-    call:CmWrite "DEBUG: BMC web status:      %cmEwsStatus%" 8
+    call:CmWrite "debug: HTTP code updated:   %cmLastHttpCode% to %%i" 8
+    call:CmWrite "debug: BMC web status:      %cmEwsStatus%" 8
     call:CmWrite "HTTP code: %%i" 2
     if "%%i" NEQ "%cmLastHttpCode%" (
         set "cmLastHttpCode=%%i"
