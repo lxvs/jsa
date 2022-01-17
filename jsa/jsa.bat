@@ -756,17 +756,19 @@ exit /b
 
 :lookupusage
 if defined op (
-    if "%op%" == "ipmi" goto %op%_usage
-    if "%op%" == "cm" goto %op%_usage
-    if "%op%" == "kvm" goto %op%_usage
-    if "%op%" == "custom" goto %op%_usage
-    if "%op%" == "host" goto %op%_usage
-    if "%op%" == "var" goto %op%_usage
-    if "%op%" == "loop" goto ipmi_usage
-    if "%op%" == "mntr" goto ipmi_usage
-    if "%op%" == "sol" goto ipmi_usage
-    if "%op%" == "br" goto ipmi_usage
-    if "%op%" == "bootdev" goto ipmi_usage
+    if /i "%op%" == "ipmi" goto %op%_usage
+    if /i "%op%" == "cm" goto %op%_usage
+    if /i "%op%" == "kvm" goto %op%_usage
+    if /i "%op%" == "custom" goto %op%_usage
+    if /i "%op%" == "host" goto %op%_usage
+    if /i "%op%" == "var" goto %op%_usage
+    if /i "%op%" == "loop" goto ipmi_usage
+    if /i "%op%" == "mntr" goto ipmi_usage
+    if /i "%op%" == "sol" goto ipmi_usage
+    if /i "%op%" == "br" goto ipmi_usage
+    if /i "%op%" == "bootdev" goto ipmi_usage
+    if /i "%op%" == "jviewer" goto kvm_usage
+    if /i "%op%" == "ip" goto host_usage
 )
 call:Logo
 goto main_usage
