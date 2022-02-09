@@ -136,33 +136,50 @@ exit /b
 ::SetMeta
 
 :SetColor
-if "%JSA_GLOBAL_COLOR_EN%" == "0" exit /b
+if "%JSA_GLOBAL_COLOR_EN%" == "0" (
+    set cRed=
+    set cGrn=
+    set cYlw=
+    set cBlu=
+    set cMgt=
+    set cCyn=
+    set cSuf=
+    set clr_e=
+    set clr_c=
+    exit /b
+)
+@set "cRed=[91m"
+@set "cGrn=[92m"
+@set "cYlw=[93m"
+@set "cBlu=[94m"
+@set "cMgt=[95m"
+@set "cCyn=[96m"
 @set "cSuf=[0m"
 if /i "%JSA_IPMI_ECHO_COLOR%" == "red" (
-    @set "clr_e=[91m"
+    @set "clr_e=%cRed%"
 ) else if /i "%JSA_IPMI_ECHO_COLOR%" == "grn" (
-    @set "clr_e=[92m"
+    @set "clr_e=%cGrn%"
 ) else if /i "%JSA_IPMI_ECHO_COLOR%" == "ylw" (
-    @set "clr_e=[93m"
+    @set "clr_e=%cYlw%"
 ) else if /i "%JSA_IPMI_ECHO_COLOR%" == "blu" (
-    @set "clr_e=[94m"
+    @set "clr_e=%cBlu%"
 ) else if /i "%JSA_IPMI_ECHO_COLOR%" == "mgt" (
-    @set "clr_e=[95m"
+    @set "clr_e=%cMgt%"
 ) else if /i "%JSA_IPMI_ECHO_COLOR%" == "cyn" (
-    @set "clr_e=[96m"
+    @set "clr_e=%cCyn%"
 ) else set clr_e=
 if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "red" (
-    @set "clr_c=[91m"
+    @set "clr_c=%cRed%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "grn" (
-    @set "clr_c=[92m"
+    @set "clr_c=%cGrn%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "ylw" (
-    @set "clr_c=[93m"
+    @set "clr_c=%cYlw%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "blu" (
-    @set "clr_c=[94m"
+    @set "clr_c=%cBlu%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "mgt" (
-    @set "clr_c=[95m"
+    @set "clr_c=%cMgt%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "cyn" (
-    @set "clr_c=[96m"
+    @set "clr_c=%cCyn%"
 ) else set clr_c=
 exit /b
 ::SetColor
