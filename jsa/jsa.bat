@@ -116,9 +116,9 @@ if not defined JSA_IPMI_ECHO_COLOR set "JSA_IPMI_ECHO_COLOR=Cyn"
 if not defined JSA_IPMI_CUSTOM_ECHO_EN set "JSA_IPMI_CUSTOM_ECHO_EN=1"
 if not defined JSA_IPMI_CUSTOM_ECHO_COLOR set "JSA_IPMI_CUSTOM_ECHO_COLOR=Cyn"
 if not defined JSA_LOOP_INTERVAL_S set /a "JSA_LOOP_INTERVAL_S=30"
-if not defined JSA_LOOP_TIME_STAMP_EN set "JSA_LOOP_TIME_STAMP_EN=1"
+if not defined JSA_LOOP_TIMESTAMP_EN set "JSA_LOOP_TIMESTAMP_EN=1"
 if not defined JSA_MNTR_INTERVAL_S set /a "JSA_MNTR_INTERVAL_S=30"
-if not defined JSA_MNTR_TIME_STAMP_EN set "JSA_MNTR_TIME_STAMP_EN=1"
+if not defined JSA_MNTR_TIMESTAMP_EN set "JSA_MNTR_TIMESTAMP_EN=1"
 if not defined JSA_CM_PING_RETRY set /a "JSA_CM_PING_RETRY=3"
 if not defined JSA_CM_WEB_RETRY set /a "JSA_CM_WEB_RETRY=2"
 if not defined JSA_CM_LOG_LEVEL set /a "JSA_CM_LOG_LEVEL=2"
@@ -340,7 +340,7 @@ if /i "%lom%" == "mntr" (
 :cmd_loop_pre
 if not defined lom_int set lom_int=%JSA_LOOP_INTERVAL_S%
 :cmd_loop
-if "%JSA_LOOP_TIME_STAMP_EN%" == "0" (
+if "%JSA_LOOP_TIMESTAMP_EN%" == "0" (
     @echo;
     goto loop_skip_ts
 )
@@ -356,7 +356,7 @@ goto cmd_loop
 if not defined lom_int set lom_int=%JSA_MNTR_INTERVAL_S%
 set "monLast=%TEMP%\ipmi-mon-last"
 set "monCurr=%TEMP%\ipmi-mon-current"
-if "%JSA_MNTR_TIME_STAMP_EN%" == "0" (
+if "%JSA_MNTR_TIMESTAMP_EN%" == "0" (
     @echo;
     goto mntr_pre_skip_ts
 )
@@ -371,7 +371,7 @@ fc "%monCurr%" "%monLast%" 1>NUL 2>&1 && (
     call:Delay_s %lom_int%
     goto cmd_mntr
 )
-if "%JSA_MNTR_TIME_STAMP_EN%" == "0" (
+if "%JSA_MNTR_TIMESTAMP_EN%" == "0" (
     @echo;
     goto mntr_skip_ts
 )
@@ -952,13 +952,13 @@ exit /b
 @echo JSA_LOOP_INTERVAL_S             %JSA_LOOP_INTERVAL_S%
 @echo     The interval between 2 executions when loop an ipmi command ^(in second^)
 @echo -------------------------------------
-@echo JSA_LOOP_TIME_STAMP_EN          %JSA_LOOP_TIME_STAMP_EN%
+@echo JSA_LOOP_TIMESTAMP_EN           %JSA_LOOP_TIMESTAMP_EN%
 @echo     Set to a non-zero value to enable displaying timestamps when loop an ipmi command; set to 0 to disable.
 @echo -------------------------------------
 @echo JSA_MNTR_INTERVAL_S             %JSA_MNTR_INTERVAL_S%
 @echo     The interval between 2 executions when monitor an ipmi command ^(in second^)
 @echo -------------------------------------
-@echo JSA_MNTR_TIME_STAMP_EN          %JSA_MNTR_TIME_STAMP_EN%
+@echo JSA_MNTR_TIMESTAMP_EN           %JSA_MNTR_TIMESTAMP_EN%
 @echo     Set to a non-zero value to enable displaying timestamps when monitor an ipmi command; set to 0 to disable.
 @echo -------------------------------------
 @echo JSA_CM_PING_RETRY               %JSA_CM_PING_RETRY%
