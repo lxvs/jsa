@@ -102,9 +102,9 @@ exit /b
 :SetDefaults
 if not defined JSA_IPMIT set "JSA_IPMIT=%cd%\ipmitool.exe"
 if not defined JSA_JVIEWER set "JSA_JVIEWER=%cd%\JViewer\JViewer.jar"
-if not defined JSA_SOL_LOG_FOLDER set "JSA_SOL_LOG_FOLDER=%cd%\log\sol"
-if not defined JSA_CM_LOG_FOLDER set "JSA_CM_LOG_FOLDER=%cd%\log\cm"
-if not defined JSA_IPMI_CUSTOM_FOLDER set "JSA_IPMI_CUSTOM_FOLDER=%cd%\custom"
+if not defined JSA_SOL_LOG_DIR set "JSA_SOL_LOG_DIR=%cd%\log\sol"
+if not defined JSA_CM_LOG_DIR set "JSA_CM_LOG_DIR=%cd%\log\cm"
+if not defined JSA_IPMI_CUSTOM_DIR set "JSA_IPMI_CUSTOM_DIR=%cd%\custom"
 if not defined JSA_GLOBAL_COLOR_EN set "JSA_GLOBAL_COLOR_EN=1"
 if not defined JSA_IP_PREF set "JSA_IP_PREF=192.168.1"
 if not defined JSA_DEF_HOSTNAME set "JSA_DEF_HOSTNAME="
@@ -254,7 +254,7 @@ if /i "%op%" == "kvm" goto kvmparse
 set customCmd=
 set customFound=
 if /i "%op%" == "custom" set "op=%~1"
-if exist "%JSA_IPMI_CUSTOM_FOLDER%\%op%.txt" for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_FOLDER%\%op%.txt") do (
+if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
     if not defined customFound set "customFound=yes"
     if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" @echo %clr_c%ipmitool%paraI%%paraU%%paraP% -H %realhost% %%~i%cSuf%
     %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %%~i
@@ -439,7 +439,7 @@ exit /b
 
 :GenLogFilename
 call:GetTime lfnYear lfnMon lfnDay lfnHour lfnMin
-set "lfnWf=%JSA_SOL_LOG_FOLDER%\%lfnYear%-%lfnMon%-%lfnDay%"
+set "lfnWf=%JSA_SOL_LOG_DIR%\%lfnYear%-%lfnMon%-%lfnDay%"
 if "%~3" NEQ "0" if not exist "%lfnWf%" md "%lfnWf%"
 set "%2=%lfnWf%\%1-%lfnHour%.%lfnMin%.log"
 exit /b
@@ -544,7 +544,7 @@ if defined cm_web_input if "%cm_web_input_a%" == "%cm_web_input%" (
     >&2 echo warning: Parameter web_retry was designated but did not applied.
 )
 title Johnny the Sysadmin %jsa_version% - CM %realhost%
-if not exist "%JSA_CM_LOG_FOLDER%" md "%JSA_CM_LOG_FOLDER%"
+if not exist "%JSA_CM_LOG_DIR%" md "%JSA_CM_LOG_DIR%"
 set "cmCurrentStatus="
 set "cmEwsStatus="
 set "cmLastHttpCode="
@@ -564,8 +564,8 @@ if not defined cmlegacy (
     call:CmWrite "Web retry:     %cm_web%" 0 0
     call:CmWrite "Web timeout:   %JSA_CM_WEB_TIMEOUT_S% s" 0 0
     call:CmWrite "Log level:     %cm_log%" 0 0
-    if %cm_log% GTR 0 call:CmWrite "Log folder:    %JSA_CM_LOG_FOLDER%" 0 0
-) else call:CmWrite "Log folder:    %JSA_CM_LOG_FOLDER%" 0 0
+    if %cm_log% GTR 0 call:CmWrite "Log directory: %JSA_CM_LOG_DIR%" 0 0
+) else call:CmWrite "Log directory: %JSA_CM_LOG_DIR%" 0 0
 call:CmWrite "------------------------------------------------------" 0 0
 
 :cmloop
@@ -735,10 +735,10 @@ if "%cmIfts%" NEQ "0" (
 set "cmLogMsg=%~1"
 if %cmMsgLvl% EQU 0 @echo %cmpre%%cmTimeStamp% %cmLogMsg%%cmsuf%
 if %cmMsgLvl% GEQ %cm_log% exit /b 0
-if not exist "%JSA_CM_LOG_FOLDER%" md "%JSA_CM_LOG_FOLDER%"
-if %cmMsgLvl% EQU 0 >>"%JSA_CM_LOG_FOLDER%\%realhost%.log" echo %cmTimeStamp% %cmLogMsg%
+if not exist "%JSA_CM_LOG_DIR%" md "%JSA_CM_LOG_DIR%"
+if %cmMsgLvl% EQU 0 >>"%JSA_CM_LOG_DIR%\%realhost%.log" echo %cmTimeStamp% %cmLogMsg%
 if %cm_log% LEQ 1 exit /b 0
-if %cmMsgLvl% LSS %cm_log% >>"%JSA_CM_LOG_FOLDER%\%realhost%.verbose.log" echo %cmTimeStamp% %cmLogMsg%
+if %cmMsgLvl% LSS %cm_log% >>"%JSA_CM_LOG_DIR%\%realhost%.verbose.log" echo %cmTimeStamp% %cmLogMsg%
 exit /b 0
 ::CmWrite
 
@@ -819,7 +819,7 @@ exit /b
 @echo         Monitor, similar to loop, but only shows updates.
 @echo;
 @echo jsa sol [{filename}.log] [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Save SOL log to %JSA_SOL_LOG_FOLDER%
+@echo         Save SOL log to %JSA_SOL_LOG_DIR%
 @echo         If {filename} is specified, saved to %precd% instead.
 @echo;
 @echo jsa br [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
@@ -861,7 +861,7 @@ exit /b
 
 :custom_usage
 @echo;
-@echo Write ipmi command to %JSA_IPMI_CUSTOM_FOLDER%\^<command^>.txt, one command per line.
+@echo Write ipmi command to %JSA_IPMI_CUSTOM_DIR%\^<command^>.txt, one command per line.
 @echo Lines starting with # will be treated as comments.
 @echo;
 @echo Custom commands can only contain original ipmitool commands.
@@ -869,7 +869,7 @@ exit /b
 @echo Example:
 @echo;
 @echo     write 'raw 0x0 0x9 0x5 0x0 0x0' ^(without quotes^) to file
-@echo     %JSA_IPMI_CUSTOM_FOLDER%\getbootorder.txt, and then you can use command:
+@echo     %JSA_IPMI_CUSTOM_DIR%\getbootorder.txt, and then you can use command:
 @echo         jsa /h {hostname} custom getbootorder
 @echo     or
 @echo         jsa /h {hostname} getbootorder
@@ -910,14 +910,14 @@ exit /b
 @echo JSA_JVIEWER                     %JSA_JVIEWER%
 @echo     Path to jviewer.jar
 @echo -------------------------------------
-@echo JSA_SOL_LOG_FOLDER              %JSA_SOL_LOG_FOLDER%
-@echo     Folder to save sol logs
+@echo JSA_SOL_LOG_DIR                 %JSA_SOL_LOG_DIR%
+@echo     Directory to save sol logs
 @echo -------------------------------------
-@echo JSA_CM_LOG_FOLDER               %JSA_CM_LOG_FOLDER%
-@echo     Folder to save connection monitor logs
+@echo JSA_CM_LOG_DIR                  %JSA_CM_LOG_DIR%
+@echo     Directory to save connection monitor logs
 @echo -------------------------------------
-@echo JSA_IPMI_CUSTOM_FOLDER          %JSA_IPMI_CUSTOM_FOLDER%
-@echo     Folder of custom ipmi commands
+@echo JSA_IPMI_CUSTOM_DIR             %JSA_IPMI_CUSTOM_DIR%
+@echo     Directory of custom ipmi commands
 @echo -------------------------------------
 @echo JSA_GLOBAL_COLOR_EN             %JSA_GLOBAL_COLOR_EN%
 @echo     Global control of colorful output. Set to a non-zero value to enable; set to 0 to disable.
