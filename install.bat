@@ -2,41 +2,52 @@
 @REM https://github.com/lxvs/jsa
 
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 set "name=jsa"
 set "dir=%~dp0jsa"
 set "exec=jsa.bat"
 set "reg=%SystemRoot%\System32\reg.exe"
-pushd %USERPROFILE%
-set conflict=
-for /f %%i in ('where %name% 2^>nul') do if not defined conflict set "conflict=%%~i"
-popd
 for /f "skip=2 tokens=1,2*" %%a in ('%reg% query "HKCU\Environment" /v "Path" 2^>NUL') do if /i "%%~a" == "path" set "UserPath=%%c"
 if not defined UserPath (
-    >&2 echo The user PATH seems empty; installation is aborted.
+    >&2 echo error: Failed to get user Path. Abort to avoid messing up.
     goto end
 )
-if not defined conflict goto continue
-if "%dir%\%exec%" == "%conflict%" (
-    echo %name% has already been installed.
-) else (
-    echo %name% has already been installed in %conflict%
-)
-:confirm
-set uninst=
-set /p "uninst=Do you want to uninstall? [Y/N]: "
-if /i "%uninst%" == "n" exit /b
-if /i "%uninst%" == "y" goto uninstall
-goto confirm
 
-:continue
+set uninstall=
+:parseargs
+if %1. == . (goto endparseargs)
+if /i "%~1" == "--uninstall" (
+    set uninstall=1
+    shift /1
+    goto parseargs
+)
+if /i "%~1" == "/?" (goto ShowHelp)
+if /i "%~1" == "-?" (goto ShowHelp)
+if /i "%~1" == "-h" (goto ShowHelp)
+if /i "%~1" == "--help" (goto ShowHelp)
+>&2 echo error: invalid argument `%~1'
+>&2 echo Try `install.bat --help' for more information.
+goto end
+:endparseargs
+
+set conflict=
+for /f %%i in ('where %name% 2^>nul') do if not defined conflict set "conflict=%%~i"
+if defined conflict (
+    if defined uninstall (
+        call:uninstall
+        goto end
+    ) else (
+        echo Uninstalling previous installation...
+        call:uninstall || goto end
+    )
+)
+
 setx PATH "%dir%;%UserPath%" 1>NUL || goto end
 %reg% add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /ve /d "%dir%\%exec%" /f 1>nul
-@echo Complete.
+@echo Install complete.
 goto end
 
 :uninstall
-setlocal EnableDelayedExpansion
 set newpath=
 set "_path=%USERPATH%"
 set "_path=%_path: =#%"
@@ -50,12 +61,16 @@ for %%i in (%_path%) do (
 set "newpath=%newpath:#= %"
 set "newpath=%newpath:[=(%"
 set "newpath=%newpath:]=)%"
-setx PATH "%newpath%" 1>nul || (
-    pause
-    exit /b 1
-)
-%SystemRoot%\System32\reg.exe delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /f 1>nul 2>&1
-echo Uninstallation finished.
+setx Path "%newpath%" 1>nul || exit /b 1
+set "UserPath=%newpath%"
+%reg% delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /f 1>nul 2>&1
+echo Uninstall complete.
+exit /b 0
+
+:ShowHelp
+echo usage: install.bat
+echo    or: install.bat --uninstall
+exit /b
 
 :end
 pause
