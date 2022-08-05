@@ -24,8 +24,8 @@ if "%~1" == "-H" (
         exit /b 1
     )
     set "host=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto parse
 ) else if "%~1" == "-U" (
     if "%~2" == "" (
@@ -33,8 +33,8 @@ if "%~1" == "-H" (
         exit /b 1
     )
     set "usrn=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto parse
 ) else if "%~1" == "-P" (
     if "%~2" == "" (
@@ -42,8 +42,8 @@ if "%~1" == "-H" (
         exit /b 1
     )
     set "pswd=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto parse
 ) else if "%~1" == "-I" (
     if "%~2" == "" (
@@ -51,8 +51,8 @@ if "%~1" == "-H" (
         exit /b 1
     )
     set "intf=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto parse
 ) else if "%~1" == "/?" (
     goto lookupusage
@@ -67,11 +67,11 @@ if "%~1" == "-H" (
     exit /b
 ) else if not defined op (
     set "op=%~1"
-    shift
+    shift /1
     goto parse
 ) else (
     set "args=%args% %~1"
-    shift
+    shift /1
     goto parse
 )
 :postparse
@@ -275,26 +275,26 @@ exit /b
 
 :bootdevparse
 set "dev=%~1"
-shift
+shift /1
 set efiflag=
 set persflag=
 :bdpstart
 if "%~1" == "" goto postbdp
 if /i "%~1" == "efi" (
     set "efiflag=options=efiboot"
-    shift
+    shift /1
     goto bdpstart
 ) else if /i "%~1" == "efiboot" (
     set "efiflag=options=efiboot"
-    shift
+    shift /1
     goto bdpstart
 ) else if /i "%~1" == "persistent" (
     set "persflag=options=persistent"
-    shift
+    shift /1
     goto bdpstart
 ) else (
     set "bdargs=%bdargs% %~1"
-    shift
+    shift /1
     goto bdpstart
 )
 :postbdp
@@ -317,13 +317,13 @@ if "%~1" == "" (
 if "%~1" == "0" goto lomparse
 set /a "lom_int=%~1" 2>nul || goto lomparse
 if "%lom_int%" == "%~1" (
-    shift
+    shift /1
 )
 :lomparse
 if "%lom_int%" == "0" set lom_int=
 if "%~1" NEQ "" (
     set "lom_args=%lom_args% %~1"
-    shift
+    shift /1
     goto lomparse
 )
 if /i "%lom%" == "mntr" (
@@ -414,8 +414,8 @@ if /i "%~1" == "-w" (
         exit /b 1
     )
     set /a "kvm_wp=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto kvmparseloop
 )
 if /i "%~1" == "--web-port" (
@@ -429,7 +429,7 @@ if /i "%~1" == "--web-port" (
     goto kvmparseloop
 )
 set "kvm_args=%kvm_args% %~1"
-shift
+shift /1
 goto kvmparseloop
 
 :kvmstart
@@ -502,7 +502,7 @@ if /i "%~1" == "-l" (
 )
 if /i "%~1" == "--legacy" (
     set "cmlegacy=1"
-    shift
+    shift /1
     goto cmparse
 )
 if /i "%~1" == "-g" (
@@ -511,8 +511,8 @@ if /i "%~1" == "-g" (
         exit /b 1
     )
     set "cm_log_input=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto cmparse
 )
 if /i "%~1" == "--log-level" (
@@ -531,8 +531,8 @@ if /i "%~1" == "-p" (
         exit /b 1
     )
     set "cm_ping_input=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto cmparse
 )
 if /i "%~1" == "--ping-retry" (
@@ -551,8 +551,8 @@ if /i "%~1" == "-w" (
         exit /b 1
     )
     set "cm_web_input=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto cmparse
 )
 if /i "%~1" == "--web-retry" (
