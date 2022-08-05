@@ -256,10 +256,11 @@ if /i "%op%" == "custom" (
     set customCmd=1
     set "op=%~1"
 )
-if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
-    if not defined customFound set "customFound=yes"
-    if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" @echo %clr_c%ipmitool%paraI%%paraU%%paraP% -H %realhost% %%~i%cSuf%
-    %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %%~i
+if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" (
+    set "customFound=1"
+    for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
+        call:execline "%%~i"
+    )
 )
 if defined customFound exit /b
 if defined customCmd (
@@ -269,6 +270,13 @@ if defined customCmd (
 ) else (
     goto ipmi_default
 )
+:execline
+if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" (
+    echo %clr_c%ipmitool%paraI%%paraU%%paraP% -H %realhost% %~1%cSuf%
+)
+%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %~1
+exit /b
+::execline
 ::Execute
 
 :ipmi_bios
