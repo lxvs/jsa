@@ -5,8 +5,8 @@ call:SetDefaults
 call:SetMeta
 call:SetColor
 
-if "%~1" == "" (
-    call:Logo
+if %1. == . (
+    call:ShowVersion
     goto main_usage
 )
 set host=
@@ -17,54 +17,53 @@ set usrn=
 set pswd=
 set intf=
 :parse
-if "%~1" == "" goto postparse
-if /i "%~1" == "/h" (
+if %1. == . goto postparse
+if "%~1" == "-H" (
     if "%~2" == "" (
-        >&2 echo error: %~1 needs a value.
+        >&2 echo error: `%~1' needs a value
         exit /b 1
     )
     set "host=%~2"
     shift
     shift
     goto parse
-) else if /i "%~1" == "/u" (
+) else if "%~1" == "-U" (
     if "%~2" == "" (
-        >&2 echo error: %~1 needs a value.
+        >&2 echo error: `%~1' needs a value
         exit /b 1
     )
     set "usrn=%~2"
     shift
     shift
     goto parse
-) else if /i "%~1" == "/p" (
+) else if "%~1" == "-P" (
     if "%~2" == "" (
-        >&2 echo error: %~1 needs a value.
+        >&2 echo error: `%~1' needs a value
         exit /b 1
     )
     set "pswd=%~2"
     shift
     shift
     goto parse
-) else if /i "%~1" == "/i" (
+) else if "%~1" == "-I" (
     if "%~2" == "" (
-        >&2 echo error: %~1 needs a value.
+        >&2 echo error: `%~1' needs a value
         exit /b 1
     )
     set "intf=%~2"
     shift
     shift
     goto parse
-) else if /i "%~1" == "/?" (
+) else if "%~1" == "/?" (
     goto lookupusage
-) else if /i "%~1" == "/help" (
+) else if "%~1" == "-?" (
     goto lookupusage
-) else if /i "%~1" == "/usage" (
+) else if /i "%~1" == "-h" (
     goto lookupusage
-) else if /i "%~1" == "/v" (
-    call:Logo
-    exit /b
-) else if /i "%~1" == "/version" (
-    call:Logo
+) else if /i "%~1" == "--help" (
+    goto lookupusage
+) else if /i "%~1" == "--version" (
+    call:ShowVersion
     exit /b
 ) else if not defined op (
     set "op=%~1"
@@ -191,7 +190,7 @@ if not defined host (
         exit /b 0
     )
     >&2 echo error: no hostname specified
-    >&2 echo Try 'jsa /?' for help.
+    >&2 echo Try `jsa --help' for more information.
     exit /b 1
 )
 echo %host% | findstr /r /c:"^[0-9.]* $" 1>nul 2>&1 || (
@@ -234,7 +233,7 @@ if defined seca if defined prec (
 )
 >&2 echo error: Parsed IP has less than 4 sections.
 >&2 echo JSA_IP_PREF = %JSA_IP_PREF%
->&2 echo Try 'jsa host /?' for more information.
+>&2 echo Try `jsa host --help' for more information.
 exit /b 1
 ::ParseHost
 
@@ -312,7 +311,7 @@ set "lom=mntr"
 :lomstart
 if "%~1" == "" (
     >&2 echo error: no command provided
-    >&2 echo Try 'jsa /?' for help.
+    >&2 echo Try `jsa --help' for more information.
     exit /b 1
 )
 if "%~1" == "0" goto lomparse
@@ -404,25 +403,35 @@ set kvm_wp=
 set kvm_args=
 if not exist "%JSA_JVIEWER%" (
     >&2 echo error: unable to find JViewer.jar in %JSA_JVIEWER%
-    >&2 echo Please defined the path to JViewer.jar in variable 'JSA_JVIEWER'.
+    >&2 echo Please defined the path to JViewer.jar in variable `JSA_JVIEWER'.
     exit /b 1
 )
 :kvmparseloop
 if "%~1" == "" goto kvmstart
-if /i "%~1" == "/w" (
+if /i "%~1" == "-w" (
     if "%~2" == "" (
-        >&2 echo error: %~1 requires a value.
+        >&2 echo error: `%~1' requires a value
         exit /b 1
     )
     set /a "kvm_wp=%~2"
     shift
     shift
     goto kvmparseloop
-) else (
-    set "kvm_args=%kvm_args% %~1"
-    shift
+)
+if /i "%~1" == "--web-port" (
+    if "%~2" == "" (
+        >&2 echo error: `%~1' requires a value
+        exit /b 1
+    )
+    set /a "kvm_wp=%~2"
+    shift /1
+    shift /1
     goto kvmparseloop
 )
+set "kvm_args=%kvm_args% %~1"
+shift
+goto kvmparseloop
+
 :kvmstart
 if not defined kvm_wp set "kvm_wp=%JSA_KVM_WEBPORT%"
 if not defined kvm_wp set "kvm_wp=443"
@@ -486,14 +495,19 @@ set "cm_ping=%JSA_CM_PING_RETRY%"
 set "cm_web=%JSA_CM_WEB_RETRY%"
 :cmparse
 if /i "%~1" == "" goto postCmParse
-if /i "%~1" == "/legacy" (
+if /i "%~1" == "-l" (
+    set "cmlegacy=1"
+    shift /1
+    goto cmparse
+)
+if /i "%~1" == "--legacy" (
     set "cmlegacy=1"
     shift
     goto cmparse
 )
-if /i "%~1" == "/log" (
+if /i "%~1" == "-g" (
     if "%~2" == "" (
-        >&2 echo error: %~1 requires a value.
+        >&2 echo error: `%~1' requires a value
         exit /b 1
     )
     set "cm_log_input=%~2"
@@ -501,9 +515,19 @@ if /i "%~1" == "/log" (
     shift
     goto cmparse
 )
-if /i "%~1" == "/ping" (
+if /i "%~1" == "--log-level" (
     if "%~2" == "" (
-        >&2 echo error: %~1 requires a value.
+        >&2 echo error: `%~1' requires a value
+        exit /b 1
+    )
+    set "cm_log_input=%~2"
+    shift /1
+    shift /1
+    goto cmparse
+)
+if /i "%~1" == "-p" (
+    if "%~2" == "" (
+        >&2 echo error: `%~1' requires a value
         exit /b 1
     )
     set "cm_ping_input=%~2"
@@ -511,9 +535,19 @@ if /i "%~1" == "/ping" (
     shift
     goto cmparse
 )
-if /i "%~1" == "/web" (
+if /i "%~1" == "--ping-retry" (
     if "%~2" == "" (
-        >&2 echo error: %~1 requires a value.
+        >&2 echo error: `%~1' requires a value
+        exit /b 1
+    )
+    set "cm_ping_input=%~2"
+    shift /1
+    shift /1
+    goto cmparse
+)
+if /i "%~1" == "-w" (
+    if "%~2" == "" (
+        >&2 echo error: `%~1' requires a value
         exit /b 1
     )
     set "cm_web_input=%~2"
@@ -521,8 +555,18 @@ if /i "%~1" == "/web" (
     shift
     goto cmparse
 )
->&2 echo error: invalid switch: %~1
->&2 echo Try 'jsa /?' for help.
+if /i "%~1" == "--web-retry" (
+    if "%~2" == "" (
+        >&2 echo error: `%~1' requires a value
+        exit /b 1
+    )
+    set "cm_web_input=%~2"
+    shift /1
+    shift /1
+    goto cmparse
+)
+>&2 echo error: invalid switch: `%~1'
+>&2 echo Try `jsa --help' for more information.
 exit /b 1
 :postCmParse
 set /a "cm_log_input_a=cm_log_input"
@@ -754,12 +798,13 @@ for /f "tokens=1-6 usebackq delims=_" %%a in (`powershell -command "&{Get-Date -
 exit /b
 ::GetTime
 
-:Logo
+:ShowVersion
 @echo;
 @echo     Johnny the Sysadmin %jsa_version%
 @echo     https://github.com/lxvs/jsa
+@echo;
 exit /b
-::Logo
+::ShowVersion
 
 :Delay_s
 setlocal
@@ -786,109 +831,113 @@ if defined op (
     if /i "%op%" == "jviewer" goto kvm_usage
     if /i "%op%" == "ip" goto host_usage
 )
-call:Logo
+call:ShowVersion
 goto main_usage
 exit /b
 ::lookupusage
 
 :main_usage
+@echo usage: jsa OPERATION ARGUMENTS ...
+@echo    or: jsa --version
+@echo    or: jsa --help
 @echo;
-@echo jsa /?          Show this usage.
-@echo jsa /version    Show the version.
+@echo operations:
+@echo     ipmi        send an ipmi command
+@echo     custom      send custom ipmi commands
+@echo     cm          connection monitor
+@echo     kvm         KVM
 @echo;
-@echo jsa ipmi /?     Usage of IPMI operations
-@echo jsa cm /?       Usage of connection monitor
-@echo jsa kvm /?      Usage of KVM/JViewer
-@echo jsa custom /?   Usage of custom commands
-@echo jsa host /?     Description of IPv4 hostname shorthand
-@echo jsa var /?      Description of variables
+@echo Try `jsa OPERATION --help' for more information on OPERATION.
+@echo Try `jsa host --help' for description of IPv4 hostname shorthand.
+@echo Try `jsa var --help' for description of variables.
 exit /b
 ::main_usage
 
 :ipmi_usage
+@echo usage: jsa [ipmi] [OPTIONS...] COMMAND [ARGUMENTS...]
+@echo    or: jsa [custom] [OPTIONS...] COMMAND [ARGUMENTS...]
+@echo    or: jsa sol [OPTIONS...] [FILENAME.log]
+@echo    or: jsa loop [INTERVAL] [OPTIONS...] COMMAND [ARGUMENTS...]
+@echo    or: jsa monitor [INTERVAL] [OPTIONS...] COMMAND [ARGUMENTS...]
+@echo    or: jsa bootdev DEVICE [efi] [persistent] [OPTIONS...]
+@echo    or: jsa br [OPTIONS...]
 @echo;
-@echo jsa ipmi {command ...} [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Send an IPMI command. Default hostname, username, password, and interface is loaded
-@echo         from variable JSA_DEF_HOSTNAME, JSA_DEF_USERNAME, JSA_DEF_PASSWORD and JSA_DEF_IPMI_INTF respectively.
-@echo         Current defaults: /h %JSA_DEF_HOSTNAME% /u %JSA_DEF_USERNAME% /p %JSA_DEF_PASSWORD% /i %JSA_DEF_IPMI_INTF%
+@echo operations:
+@echo     ipmi        Send an ipmi command; `ipmi' can be omitted.
+@echo     custom      Send a custom ipmi command; try `jsa custom --help' for more.
+@echo     sol         Activate an SOL session and save output to a file.
+@echo     loop        Send an ipmi command repeatedly, with an interval of INTERVAL
+@echo                   second^(s^).
+@echo     monitor     Similar to `loop', but only prints updates.
+@echo     bootdev     Specify boot device for next boot. If `efi' is specified,
+@echo                   append `options=efiboot'; if `persistent' is specified, append
+@echo                   `options=persistent'.
+@echo     br          Force to enter BIOS Setup on next boot and then power cycle.
 @echo;
-@echo jsa loop [{interval}] {command ...} [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Send IPMI commands repeatedly, with an interval of {interval} second^(s^).
-@echo;
-@echo jsa mntr [{interval}] {command ...} [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Monitor, similar to loop, but only shows updates.
-@echo;
-@echo jsa sol [{filename}.log] [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Save SOL log to %JSA_SOL_LOG_DIR%
-@echo         If {filename} is specified, saved to %precd% instead.
-@echo;
-@echo jsa br [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Force to enter BIOS setup on next boot and reset immediately.
-@echo;
-@echo jsa bootdev {device} [efi] [persistent] [/h {hostname}] [/u {username}] [/p {password}] [/i {interface}]
-@echo         Specify boot device ^(bios, pxe, etc.^) for next one only.
-@echo         If 'efi' is specified, append 'options=efiboot'.
-@echo         If 'persistent' is specified, append 'options=persistent'.
+@echo options:
+@echo     -H  Specify hostname; use JSA_DEF_HOSTNAME if not specified.
+@echo     -U  Specify username; use JSA_DEF_USERNAME if not specified.
+@echo     -P  Specify password; use JSA_DEF_PASSWORD if not specified.
+@echo     -I  Specify interface; use JSA_DEF_INTERFACE if not specified.
 exit /b
 ::ipmi_usage
 
 :cm_usage
+@echo useage: jsa cm [OPTIONS...]
 @echo;
-@echo jsa cm [/h {hostname}] [/log {log_level}] [/ping {ping_retry}] [/web {web_retry}]
-@echo;
-@echo     log_level       0: Quiet
-@echo                     1: Log console outputs.
-@echo                     2: Also log retries and http code changes.
-@echo                     3: Also log every ping and http code result.
-@echo                     Default: %JSA_CM_LOG_LEVEL%
-@echo;
-@echo     ping_retry      Retry times before announcing a ping failure
-@echo                     Default: %JSA_CM_PING_RETRY%
-@echo;
-@echo     web_retry       Retry times before announcing the web is down
-@echo                     Default: %JSA_CM_WEB_RETRY%
-@echo;
-@echo jsa cm /legacy [/h {hostname}]
-@echo         Legacy connection monitor, just pings, no web accessibility monitor.
+@echo options:
+@echo     -l, --legacy        Only monitor ping results, not web accessibility.
+@echo     -g, --log-level     Specify log level, default is normal ^(controlled by
+@echo                           JSA_CM_LOG_LEVEL^).
+@echo                           0, quiet: quiet;
+@echo                           1, min: log console outputs;
+@echo                           2, normal: also log retries and http code changes.
+@echo                           3, max: also log all ping and http code results.
+@echo     -p, --ping-retry    Specify retry times before announcing a ping failure.
+@echo                           Default is 3 ^(controlled by JSA_CM_PING_RETRY^).
+@echo     -w, --web-retry    Specify retry times before announcing the web is down.
+@echo                           Default is 2 ^(controlled by JSA_CM_WEB_RETRY^).
 exit /b
 ::cm_usage
 
 :kvm_usage
+@echo usage: jsa kvm [OPTIONS...] [JVIEWER_OPTIONS...]
 @echo;
-@echo jsa kvm [/h {hostname}] [/u {username}] [/p {password}] [/w {webport}] [-apptype StandAlone] [-localization/-lang Language] [-launch Application Type]
+@echo options:
+@echo     -H              Specify hostname; use JSA_DEF_HOSTNAME if not specified.
+@echo     -U              Specify username; use JSA_DEF_USERNAME if not specified.
+@echo     -P              Specify password; use JSA_DEF_PASSWORD if not specified.
+@echo     -w, --web-port  Specify web port; use JSA_KVM_WEBPORT if not specified.
+@echo;
+@echo JViewer options:
+@echo     -apptype StandAlone
+@echo     -localization/-lang Language
+@echo     -launch Application Type
 exit /b
 ::kvm_usage
 
 :custom_usage
+@echo Write ipmi command to file `custom\COMMAND.txt', one command per line. Lines
+@echo starting with `#' will be ignored. Custom commands cannot contain other custom
+@echo commands.
 @echo;
-@echo Write ipmi command to %JSA_IPMI_CUSTOM_DIR%\^<command^>.txt, one command per line.
-@echo Lines starting with # will be treated as comments.
-@echo;
-@echo Custom commands can only contain original ipmitool commands.
-@echo;
-@echo Example:
-@echo;
-@echo     write 'raw 0x0 0x9 0x5 0x0 0x0' ^(without quotes^) to file
-@echo     %JSA_IPMI_CUSTOM_DIR%\getbootorder.txt, and then you can use command:
-@echo         jsa /h {hostname} custom getbootorder
-@echo     or
-@echo         jsa /h {hostname} getbootorder
-@echo     as a shortcut to command:
-@echo         jsa /h {hostname} ipmi raw 0x0 0x9 0x5 0x0 0x0
-@echo;
+@echo example:
+@echo     write `raw 0x0 0x9 0x5 0x0 0x0' to file `custom\getbootorder.txt', and then
+@echo     you can use command `jsa getbootorder' or `jsa custom getbootorder' as a
+@echo     shortcut to command `jsa ipmi raw 0x0 0x9 0x5 0x0 0x0'.
 exit /b
 ::custom_usage
 
 :host_usage
+@echo HOSTNAME can be either a domain name ^(e.g. www.example.com^) or IP address.
+@echo When use IPv4 address as HOSTNAME, you can just specify a part of full IPv4
+@echo   address after set the variable JSA_IP_PREF properly.
+@echo HOSTNAME can be 1~4 segment^(s^), but
+@echo   {segment^(s^) of HOSTNAME} + {segment^(s^) of JSA_IP_PREF} must ^>= 4.
 @echo;
-@echo {hostname} can be either domain ^(e.g., admin.example.com^) or IP address.
-@echo When use IPv4 address as {hostname}, you can just specify a part of full IPv4 address
-@echo after set the variable JSA_IP_PREF properly. Current JSA_IP_PREF: %JSA_IP_PREF%
-@echo {hostname} can be 1~4 segment^(s^), but segment^(s^) of {hostname} + segment^(s^) of JSA_IP_PREF must ^>= 4.
-@echo;
-@echo Example:
+@echo example:
 @echo -------------------------------------------
-@echo {hostname}     JSA_IP_PREF      Actual IP
+@echo HOSTNAME       JSA_IP_PREF      Result IPv4
 @echo -------------------------------------------
 @echo         7       192.168.0       192.168.0.7
 @echo       7.7       192.168.0       192.168.7.7
@@ -896,90 +945,122 @@ exit /b
 @echo       7.7       192             invalid
 @echo -------------------------------------------
 @echo;
-@echo Try 'jsa var /?' for more information on variables.
+@echo Try `jsa var --help' for more information on variables.
 exit /b
 ::host_usage
 
 :var_usage
 @echo;
-@echo VARIABLE/DESCRIPTION            VALUE
-@echo -------------------------------------
-@echo JSA_IPMIT                       %JSA_IPMIT%
+@echo Variable / Current Value / Description
+@echo --------------------------------------
+@echo JSA_IPMIT
+@echo     %JSA_IPMIT%
 @echo     Path to ipmitool.exe
-@echo -------------------------------------
-@echo JSA_JVIEWER                     %JSA_JVIEWER%
+@echo --------------------------------------
+@echo JSA_JVIEWER
+@echo     %JSA_JVIEWER%
 @echo     Path to jviewer.jar
-@echo -------------------------------------
-@echo JSA_SOL_LOG_DIR                 %JSA_SOL_LOG_DIR%
+@echo --------------------------------------
+@echo JSA_SOL_LOG_DIR
+@echo     %JSA_SOL_LOG_DIR%
 @echo     Directory to save sol logs
-@echo -------------------------------------
-@echo JSA_CM_LOG_DIR                  %JSA_CM_LOG_DIR%
+@echo --------------------------------------
+@echo JSA_CM_LOG_DIR
+@echo     %JSA_CM_LOG_DIR%
 @echo     Directory to save connection monitor logs
-@echo -------------------------------------
-@echo JSA_IPMI_CUSTOM_DIR             %JSA_IPMI_CUSTOM_DIR%
+@echo --------------------------------------
+@echo JSA_IPMI_CUSTOM_DIR
+@echo     %JSA_IPMI_CUSTOM_DIR%
 @echo     Directory of custom ipmi commands
-@echo -------------------------------------
-@echo JSA_GLOBAL_COLOR_EN             %JSA_GLOBAL_COLOR_EN%
-@echo     Global control of colorful output. Set to a non-zero value to enable; set to 0 to disable.
-@echo -------------------------------------
-@echo JSA_IP_PREF                     %JSA_IP_PREF%
-@echo     IPv4 address prefix, try 'jsa host /?' for more information.
-@echo -------------------------------------
-@echo JSA_DEF_HOSTNAME                %JSA_DEF_HOSTNAME%
+@echo --------------------------------------
+@echo JSA_GLOBAL_COLOR_EN
+@echo     %JSA_GLOBAL_COLOR_EN%
+@echo     Global control of colorful output. Set to a non-zero value to enable; set
+@echo       to 0 to disable.
+@echo --------------------------------------
+@echo JSA_IP_PREF
+@echo     %JSA_IP_PREF%
+@echo     IPv4 address prefix, try `jsa host --help' for more information.
+@echo --------------------------------------
+@echo JSA_DEF_HOSTNAME
+@echo     %JSA_DEF_HOSTNAME%
 @echo     Default hostname when not specified
-@echo -------------------------------------
-@echo JSA_DEF_USERNAME                %JSA_DEF_USERNAME%
+@echo --------------------------------------
+@echo JSA_DEF_USERNAME
+@echo     %JSA_DEF_USERNAME%
 @echo     default username of ipmi commands
-@echo -------------------------------------
-@echo JSA_DEF_PASSWORD                %JSA_DEF_PASSWORD%
+@echo --------------------------------------
+@echo JSA_DEF_PASSWORD
+@echo     %JSA_DEF_PASSWORD%
 @echo     default password of ipmi commands
-@echo -------------------------------------
-@echo JSA_DEF_IPMI_INTF               %JSA_DEF_IPMI_INTF%
+@echo --------------------------------------
+@echo JSA_DEF_IPMI_INTF
+@echo     %JSA_DEF_IPMI_INTF%
 @echo     default interface of ipmi commands
-@echo -------------------------------------
-@echo JSA_IPMI_ECHO_EN                %JSA_IPMI_ECHO_EN%
+@echo --------------------------------------
+@echo JSA_IPMI_ECHO_EN
+@echo     %JSA_IPMI_ECHO_EN%
 @echo     set to a non-zero value to enable echo of ipmi commands; set to 0 to disable
-@echo -------------------------------------
-@echo JSA_IPMI_ECHO_COLOR             %JSA_IPMI_ECHO_COLOR%
+@echo --------------------------------------
+@echo JSA_IPMI_ECHO_COLOR
+@echo     %JSA_IPMI_ECHO_COLOR%
 @echo     colors of the echo of ipmi commands: Red, Ylw, Grn, Blu, Mgt, Cyn
-@echo -------------------------------------
-@echo JSA_IPMI_CUSTOM_ECHO_EN         %JSA_IPMI_CUSTOM_ECHO_EN%
-@echo     set to a non-zero value to enable echo of custom ipmi commands; set to 0 to disable
-@echo -------------------------------------
-@echo JSA_IPMI_CUSTOM_ECHO_COLOR      %JSA_IPMI_CUSTOM_ECHO_COLOR%
+@echo --------------------------------------
+@echo JSA_IPMI_CUSTOM_ECHO_EN
+@echo     %JSA_IPMI_CUSTOM_ECHO_EN%
+@echo     set to a non-zero value to enable echo of custom ipmi commands; set to 0 to
+@echo      disable
+@echo --------------------------------------
+@echo JSA_IPMI_CUSTOM_ECHO_COLOR
+@echo     %JSA_IPMI_CUSTOM_ECHO_COLOR%
 @echo     colors of the echo of custom ipmi commands: Red, Ylw, Grn, Blu, Mgt, Cyn
-@echo -------------------------------------
-@echo JSA_LOOP_INTERVAL_S             %JSA_LOOP_INTERVAL_S%
+@echo --------------------------------------
+@echo JSA_LOOP_INTERVAL_S
+@echo     %JSA_LOOP_INTERVAL_S%
 @echo     The interval between 2 executions when loop an ipmi command ^(in second^)
-@echo -------------------------------------
-@echo JSA_LOOP_TIMESTAMP_EN           %JSA_LOOP_TIMESTAMP_EN%
-@echo     Set to a non-zero value to enable displaying timestamps when loop an ipmi command; set to 0 to disable.
-@echo -------------------------------------
-@echo JSA_MNTR_INTERVAL_S             %JSA_MNTR_INTERVAL_S%
+@echo --------------------------------------
+@echo JSA_LOOP_TIMESTAMP_EN
+@echo     %JSA_LOOP_TIMESTAMP_EN%
+@echo     Set to a non-zero value to enable displaying timestamps when loop an ipmi
+@echo       command; set to 0 to disable.
+@echo --------------------------------------
+@echo JSA_MNTR_INTERVAL_S
+@echo     %JSA_MNTR_INTERVAL_S%
 @echo     The interval between 2 executions when monitor an ipmi command ^(in second^)
-@echo -------------------------------------
-@echo JSA_MNTR_TIMESTAMP_EN           %JSA_MNTR_TIMESTAMP_EN%
-@echo     Set to a non-zero value to enable displaying timestamps when monitor an ipmi command; set to 0 to disable.
-@echo -------------------------------------
-@echo JSA_CM_PING_RETRY               %JSA_CM_PING_RETRY%
+@echo --------------------------------------
+@echo JSA_MNTR_TIMESTAMP_EN
+@echo     %JSA_MNTR_TIMESTAMP_EN%
+@echo     Set to a non-zero value to enable displaying timestamps when monitor an
+@echo       ipmi command; set to 0 to disable.
+@echo --------------------------------------
+@echo JSA_CM_PING_RETRY
+@echo     %JSA_CM_PING_RETRY%
 @echo     Default ping retry times before announcing a bad connection
-@echo -------------------------------------
-@echo JSA_CM_WEB_RETRY                %JSA_CM_WEB_RETRY%
-@echo     Default web accessibility query retry times before announcing the web is down
-@echo -------------------------------------
-@echo JSA_CM_LOG_LEVEL                %JSA_CM_LOG_LEVEL%
+@echo --------------------------------------
+@echo JSA_CM_WEB_RETRY
+@echo     %JSA_CM_WEB_RETRY%
+@echo     Default web accessibility query retry times before announcing the web is
+@echo       down
+@echo --------------------------------------
+@echo JSA_CM_LOG_LEVEL
+@echo     %JSA_CM_LOG_LEVEL%
 @echo     Default log level of connection monitor
-@echo -------------------------------------
-@echo JSA_CM_COLOR_EN                 %JSA_CM_COLOR_EN%
-@echo     Set to a non-zero value to enable colorful output of connection monitor; set to 0 to disable.
-@echo -------------------------------------
-@echo JSA_CM_WEB_TIMEOUT_S            %JSA_CM_WEB_TIMEOUT_S%
+@echo --------------------------------------
+@echo JSA_CM_COLOR_EN
+@echo     %JSA_CM_COLOR_EN%
+@echo     Set to a non-zero value to enable colorful output of connection monitor;
+@echo       set to 0 to disable.
+@echo --------------------------------------
+@echo JSA_CM_WEB_TIMEOUT_S
+@echo     %JSA_CM_WEB_TIMEOUT_S%
 @echo     Web accessibility query timeout ^(in second^)
-@echo -------------------------------------
-@echo JSA_CM_PING_TIMEOUT_MS          %JSA_CM_PING_TIMEOUT_MS%
+@echo --------------------------------------
+@echo JSA_CM_PING_TIMEOUT_MS
+@echo     %JSA_CM_PING_TIMEOUT_MS%
 @echo     Ping timeout ^(in millisecond^)
-@echo -------------------------------------
-@echo JSA_KVM_WEBPORT                 %JSA_KVM_WEBPORT%
+@echo --------------------------------------
+@echo JSA_KVM_WEBPORT
+@echo     %JSA_KVM_WEBPORT%
 @echo     Secure web port of JViewer, default 443
 exit /b
 ::var_usage
