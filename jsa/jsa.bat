@@ -111,9 +111,9 @@ if not defined JSA_DEF_USERNAME set "JSA_DEF_USERNAME=admin"
 if not defined JSA_DEF_PASSWORD set "JSA_DEF_PASSWORD=admin"
 if not defined JSA_DEF_IPMI_INTF set "JSA_DEF_IPMI_INTF=lanplus"
 if not defined JSA_IPMI_ECHO_EN set "JSA_IPMI_ECHO_EN=1"
-if not defined JSA_IPMI_ECHO_COLOR set "JSA_IPMI_ECHO_COLOR=Cyn"
+if not defined JSA_IPMI_ECHO_COLOR set "JSA_IPMI_ECHO_COLOR=cyan"
 if not defined JSA_IPMI_CUSTOM_ECHO_EN set "JSA_IPMI_CUSTOM_ECHO_EN=1"
-if not defined JSA_IPMI_CUSTOM_ECHO_COLOR set "JSA_IPMI_CUSTOM_ECHO_COLOR=Cyn"
+if not defined JSA_IPMI_CUSTOM_ECHO_COLOR set "JSA_IPMI_CUSTOM_ECHO_COLOR=cyan"
 if not defined JSA_LOOP_INTERVAL_S set /a "JSA_LOOP_INTERVAL_S=30"
 if not defined JSA_LOOP_TIMESTAMP_EN set "JSA_LOOP_TIMESTAMP_EN=1"
 if not defined JSA_MNTR_INTERVAL_S set /a "JSA_MNTR_INTERVAL_S=30"
@@ -156,28 +156,28 @@ if "%JSA_GLOBAL_COLOR_EN%" == "0" (
 @set "cSuf=[0m"
 if /i "%JSA_IPMI_ECHO_COLOR%" == "red" (
     @set "clr_e=%cRed%"
-) else if /i "%JSA_IPMI_ECHO_COLOR%" == "grn" (
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "green" (
     @set "clr_e=%cGrn%"
-) else if /i "%JSA_IPMI_ECHO_COLOR%" == "ylw" (
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "yellow" (
     @set "clr_e=%cYlw%"
-) else if /i "%JSA_IPMI_ECHO_COLOR%" == "blu" (
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "blue" (
     @set "clr_e=%cBlu%"
-) else if /i "%JSA_IPMI_ECHO_COLOR%" == "mgt" (
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "magenta" (
     @set "clr_e=%cMgt%"
-) else if /i "%JSA_IPMI_ECHO_COLOR%" == "cyn" (
+) else if /i "%JSA_IPMI_ECHO_COLOR%" == "cyan" (
     @set "clr_e=%cCyn%"
 ) else set clr_e=
 if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "red" (
     @set "clr_c=%cRed%"
-) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "grn" (
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "green" (
     @set "clr_c=%cGrn%"
-) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "ylw" (
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "yellow" (
     @set "clr_c=%cYlw%"
-) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "blu" (
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "blue" (
     @set "clr_c=%cBlu%"
-) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "mgt" (
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "magenta" (
     @set "clr_c=%cMgt%"
-) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "cyn" (
+) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "cyan" (
     @set "clr_c=%cCyn%"
 ) else set clr_c=
 exit /b
@@ -1004,7 +1004,8 @@ exit /b
 @echo --------------------------------------
 @echo JSA_IPMI_ECHO_COLOR
 @echo     %JSA_IPMI_ECHO_COLOR%
-@echo     colors of the echo of ipmi commands: Red, Ylw, Grn, Blu, Mgt, Cyn
+@echo     color of the echo of ipmi commands: red, green, yellow, blue, magenta,
+@echo       cyan.
 @echo --------------------------------------
 @echo JSA_IPMI_CUSTOM_ECHO_EN
 @echo     %JSA_IPMI_CUSTOM_ECHO_EN%
@@ -1013,7 +1014,8 @@ exit /b
 @echo --------------------------------------
 @echo JSA_IPMI_CUSTOM_ECHO_COLOR
 @echo     %JSA_IPMI_CUSTOM_ECHO_COLOR%
-@echo     colors of the echo of custom ipmi commands: Red, Ylw, Grn, Blu, Mgt, Cyn
+@echo     colors of the echo of custom ipmi commands: red, green, yellow, blue,
+@echo       magenta, cyan.
 @echo --------------------------------------
 @echo JSA_LOOP_INTERVAL_S
 @echo     %JSA_LOOP_INTERVAL_S%
