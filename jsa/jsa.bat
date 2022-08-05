@@ -252,14 +252,23 @@ if /i "%op%" == "kvm" goto kvmparse
 :custom_cmd
 set customCmd=
 set customFound=
-if /i "%op%" == "custom" set "op=%~1"
+if /i "%op%" == "custom" (
+    set customCmd=1
+    set "op=%~1"
+)
 if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
     if not defined customFound set "customFound=yes"
     if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" @echo %clr_c%ipmitool%paraI%%paraU%%paraP% -H %realhost% %%~i%cSuf%
     %JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %%~i
 )
 if defined customFound exit /b
-goto ipmi_default
+if defined customCmd (
+    >&2 echo error: custom command `%op%' not found
+    >&2 echo Try `jsa custom --help' for more information.
+    exit /b 1
+) else (
+    goto ipmi_default
+)
 ::Execute
 
 :ipmi_bios
