@@ -1,3 +1,13 @@
+0.2.0 - 2022-08-05
+
+	* Fix a color issue for multi-line custom commands
+	* Fix that `jsa custom nul' become `jsa nul nul'
+	* Use proper color names
+	* Replace switch prefix with `-' and update usages
+	* Add argument parsing; add a switch and a script for uninstalling
+	* Rename files to lower case
+	* Improve coding
+
 0.1.7 - 2022-06-01
 
 	* Fix a color issue
