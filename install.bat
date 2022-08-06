@@ -2,76 +2,89 @@
 @REM https://github.com/lxvs/jsa
 
 @echo off
-setlocal EnableDelayedExpansion
-set "name=jsa"
+setlocal
 set "dir=%~dp0jsa"
-set "exec=jsa.bat"
-set "reg=%SystemRoot%\System32\reg.exe"
-for /f "skip=2 tokens=1,2*" %%a in ('%reg% query "HKCU\Environment" /v "Path" 2^>NUL') do if /i "%%~a" == "path" set "UserPath=%%c"
-if not defined UserPath (
-    >&2 echo error: Failed to get user Path. Abort to avoid messing up.
-    goto end
-)
-
-set uninstall=
+set name=jsa
+set exec=jsa.bat
+set regpath=HKCU\Software\lxvs\jsa
+set silent=
+set term=
+set exitcode=0
 :parseargs
 if %1. == . (goto endparseargs)
-if /i "%~1" == "--uninstall" (
-    set uninstall=1
+set term=1
+if /i "%~1" == "--silent" (
+    set silent=1
     shift /1
     goto parseargs
 )
-if /i "%~1" == "/?" (goto ShowHelp)
-if /i "%~1" == "-?" (goto ShowHelp)
-if /i "%~1" == "-h" (goto ShowHelp)
-if /i "%~1" == "--help" (goto ShowHelp)
+if /i "%~1" == "--uninstall" (
+    call %~dp0uninstall.bat
+    exit /b
+)
+if "%~1" == "/?" (goto help)
+if "%~1" == "-?" (goto help)
+if /i "%~1" == "-h" (goto help)
+if /i "%~1" == "--help" (goto help)
 >&2 echo error: invalid argument `%~1'
 >&2 echo Try `install.bat --help' for more information.
-goto end
+exit /b 1
 :endparseargs
 
-set conflict=
-for /f %%i in ('where %name% 2^>nul') do if not defined conflict set "conflict=%%~i"
-if defined conflict (
-    if defined uninstall (
-        call:uninstall
-        goto end
-    ) else (
-        echo Uninstalling previous installation...
-        call:uninstall || goto end
-    )
-)
+call %~dp0uninstall.bat --silent
 
-setx PATH "%dir%;%UserPath%" 1>NUL || goto end
-%reg% add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /ve /d "%dir%\%exec%" /f 1>nul
-@echo Install complete.
+call:getreg "HKCU\Environment" "Path" UserPath
+call:getreg "%regpath%" "path" installation
+setlocal EnableDelayedExpansion
+if defined UserPath (
+    if not defined silent (
+        setx Path "%dir%;%UserPath%" 1>nul || (
+            set exitcode=%errorlevel%
+            goto end
+        )
+        reg add "%regpath%" /v "path" /d "%dir%" /f 1>nul
+        reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /ve /d "%dir%\%exec%" /f 1>nul
+    ) else (
+        setx Path "%dir%;%UserPath%" 1>nul 2>&1 || (
+            set exitcode=%errorlevel%
+            goto end
+        )
+        reg add "%regpath%" /v "path" /d "%dir%" /f 1>nul 2>&1
+        reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /ve /d "%dir%\%exec%" /f 1>nul 2>&1
+    )
+) else (
+    if not defined silent (
+        >&2 echo error: failed to get user Path
+    )
+    set exitcode=1
+    goto end
+)
+endlocal
+if not defined silent (echo Install complete.)
 goto end
 
-:uninstall
-set newpath=
-set "_path=%USERPATH%"
-set "_path=%_path: =#%"
-set "_path=%_path:;= %"
-set "_path=%_path:(=[%"
-set "_path=%_path:)=]%"
-set "path_conflict=!conflict:\%exec%=!"
-for %%i in (%_path%) do (
-    echo %%i | findstr /l "%path_conflict%" 1>nul || set "newpath=!newpath!%%i;"
+:getreg
+set %3=
+if "%~2" == "/ve" (
+    set getreg_switch=/ve
+    set getreg_key=
+    set getreg_name=default
+) else (
+    set getreg_switch=/v
+    set "getreg_key=%~2"
+    set "getreg_name=%~2"
 )
-set "newpath=%newpath:#= %"
-set "newpath=%newpath:[=(%"
-set "newpath=%newpath:]=)%"
-setx Path "%newpath%" 1>nul || exit /b 1
-set "UserPath=%newpath%"
-%reg% delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /f 1>nul 2>&1
-echo Uninstall complete.
-exit /b 0
+for /f "skip=2 tokens=1,2*" %%a in ('reg query "%~1" %getreg_switch% "%getreg_key%" 2^>nul') do (
+    if /i "%%~a" == "%getreg_name%" (set "%3=%%~c")
+)
+exit /b
 
-:ShowHelp
+:help
 echo usage: install.bat
+echo    or: install.bat --silent
 echo    or: install.bat --uninstall
 exit /b
 
 :end
-pause
-exit /b
+if not defined term (pause)
+exit /b %exitcode%
