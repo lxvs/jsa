@@ -19,38 +19,38 @@ set intf=
 :parse
 if %1. == . goto postparse
 if "%~1" == "-H" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' needs a value
         exit /b 1
     )
-    set "host=%~2"
+    set "host=%2"
     shift /1
     shift /1
     goto parse
 ) else if "%~1" == "-U" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' needs a value
         exit /b 1
     )
-    set "usrn=%~2"
+    set "usrn=%2"
     shift /1
     shift /1
     goto parse
 ) else if "%~1" == "-P" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' needs a value
         exit /b 1
     )
-    set "pswd=%~2"
+    set "pswd=%2"
     shift /1
     shift /1
     goto parse
 ) else if "%~1" == "-I" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' needs a value
         exit /b 1
     )
-    set "intf=%~2"
+    set "intf=%2"
     shift /1
     shift /1
     goto parse
@@ -70,7 +70,7 @@ if "%~1" == "-H" (
     shift /1
     goto parse
 ) else (
-    set "args=%args% %~1"
+    set "args=%args% %1"
     shift /1
     goto parse
 )
@@ -296,7 +296,7 @@ shift /1
 set efiflag=
 set persflag=
 :bdpstart
-if "%~1" == "" goto postbdp
+if %1. == . (goto postbdp)
 if /i "%~1" == "efi" (
     set "efiflag=options=efiboot"
     shift /1
@@ -310,7 +310,7 @@ if /i "%~1" == "efi" (
     shift /1
     goto bdpstart
 ) else (
-    set "bdargs=%bdargs% %~1"
+    set "bdargs=%bdargs% %1"
     shift /1
     goto bdpstart
 )
@@ -326,7 +326,7 @@ goto lomstart
 :ipmi_mntr
 set "lom=mntr"
 :lomstart
-if "%~1" == "" (
+if %1 == . (
     >&2 echo error: no command provided
     >&2 echo Try `jsa --help' for more information.
     exit /b 1
@@ -338,8 +338,8 @@ if "%lom_int%" == "%~1" (
 )
 :lomparse
 if "%lom_int%" == "0" set lom_int=
-if "%~1" NEQ "" (
-    set "lom_args=%lom_args% %~1"
+if %1. NEQ . (
+    set "lom_args=%lom_args% %1"
     shift /1
     goto lomparse
 )
@@ -400,11 +400,11 @@ goto cmd_mntr
 ::cmd_mntr_pre
 
 :solpre
-if "%~1" == "" (
+if %1. == . (
     call:ActSol
     exit /b
 )
-if "%~2" NEQ "" goto ipmi_default
+if %2. NEQ . (goto ipmi_default)
 set "solArg=%~1"
 if /i "%solArg:~-4%" == ".log" (
     call:ActSol %solArg%
@@ -424,9 +424,9 @@ if not exist "%JSA_JVIEWER%" (
     exit /b 1
 )
 :kvmparseloop
-if "%~1" == "" goto kvmstart
+if %1. == . (goto kvmstart)
 if /i "%~1" == "-w" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -436,7 +436,7 @@ if /i "%~1" == "-w" (
     goto kvmparseloop
 )
 if /i "%~1" == "--web-port" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -445,7 +445,7 @@ if /i "%~1" == "--web-port" (
     shift /1
     goto kvmparseloop
 )
-set "kvm_args=%kvm_args% %~1"
+set "kvm_args=%kvm_args% %1"
 shift /1
 goto kvmparseloop
 
@@ -511,7 +511,7 @@ set "cm_log=%JSA_CM_LOG_LEVEL%"
 set "cm_ping=%JSA_CM_PING_RETRY%"
 set "cm_web=%JSA_CM_WEB_RETRY%"
 :cmparse
-if /i "%~1" == "" goto postCmParse
+if /i %1. == . (goto postCmParse)
 if /i "%~1" == "-l" (
     set "cmlegacy=1"
     shift /1
@@ -523,7 +523,7 @@ if /i "%~1" == "--legacy" (
     goto cmparse
 )
 if /i "%~1" == "-g" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -533,7 +533,7 @@ if /i "%~1" == "-g" (
     goto cmparse
 )
 if /i "%~1" == "--log-level" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -543,7 +543,7 @@ if /i "%~1" == "--log-level" (
     goto cmparse
 )
 if /i "%~1" == "-p" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -553,7 +553,7 @@ if /i "%~1" == "-p" (
     goto cmparse
 )
 if /i "%~1" == "--ping-retry" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -563,7 +563,7 @@ if /i "%~1" == "--ping-retry" (
     goto cmparse
 )
 if /i "%~1" == "-w" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
@@ -573,7 +573,7 @@ if /i "%~1" == "-w" (
     goto cmparse
 )
 if /i "%~1" == "--web-retry" (
-    if "%~2" == "" (
+    if %2. == . (
         >&2 echo error: `%~1' requires a value
         exit /b 1
     )
