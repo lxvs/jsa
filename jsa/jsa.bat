@@ -242,8 +242,6 @@ if /i "%op%" == "ipmi" goto ipmi_default
 if /i "%op%" == "cm" goto cmparsepre
 if /i "%op%" == "custom" goto custom_cmd
 if /i "%op%" == "sol" goto solpre
-if /i "%op%" == "bios" goto ipmi_bios
-if /i "%op%" == "br" goto ipmi_br
 if /i "%op%" == "bootdev" goto bootdevparse
 if /i "%op%" == "loop" goto ipmi_loop
 if /i "%op%" == "mntr" goto ipmi_mntr
@@ -286,18 +284,6 @@ if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" (
 exit /b
 ::execline
 ::Execute
-
-:ipmi_bios
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev bios
-exit /b
-::ipmi_bios
-
-:ipmi_br
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev bios
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis power cycle
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis power on 2>nul
-exit /b
-::ipmi_br
 
 :bootdevparse
 set "dev=%~1"
@@ -852,7 +838,6 @@ if defined op (
     if /i "%op%" == "loop" goto ipmi_usage
     if /i "%op%" == "mntr" goto ipmi_usage
     if /i "%op%" == "sol" goto ipmi_usage
-    if /i "%op%" == "br" goto ipmi_usage
     if /i "%op%" == "bootdev" goto ipmi_usage
     if /i "%op%" == "jviewer" goto kvm_usage
     if /i "%op%" == "ip" goto host_usage
@@ -886,7 +871,6 @@ exit /b
 @echo    or: jsa loop [INTERVAL] [OPTIONS...] COMMAND [ARGUMENTS...]
 @echo    or: jsa monitor [INTERVAL] [OPTIONS...] COMMAND [ARGUMENTS...]
 @echo    or: jsa bootdev DEVICE [efi] [persistent] [OPTIONS...]
-@echo    or: jsa br [OPTIONS...]
 @echo;
 @echo operations:
 @echo     ipmi        Send an ipmi command; `ipmi' can be omitted.
@@ -898,7 +882,6 @@ exit /b
 @echo     bootdev     Specify boot device for next boot. If `efi' is specified,
 @echo                   append `options=efiboot'; if `persistent' is specified, append
 @echo                   `options=persistent'.
-@echo     br          Force to enter BIOS Setup on next boot and then power cycle.
 @echo;
 @echo options:
 @echo     -H  Specify hostname; use JSA_DEF_HOSTNAME if not specified.

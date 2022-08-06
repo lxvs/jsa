@@ -1,0 +1,3 @@
+# Force system to boot to BIOS setup on next boot
+
+chassis bootdev bios

@@ -1,0 +1,5 @@
+# Force system to boot to BIOS setup on next boot, and reset system immediately.
+
+chassis bootdev bios
+chassis power cycle
+chassis power on

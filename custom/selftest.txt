@@ -1,0 +1,3 @@
+# Get BMC self test result
+
+raw 0x6 0x4
