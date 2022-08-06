@@ -272,21 +272,21 @@ if defined customCmd (
 )
 :execline
 if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" (
-    echo %clr_c%ipmitool%paraI%%paraU%%paraP% -H %realhost% %~1%cSuf%
+    echo %clr_c%ipmitool -H %realhost%%paraU%%paraP%%paraI% %~1%cSuf%
 )
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %~1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %~1
 exit /b
 ::execline
 ::Execute
 
 :ipmi_bios
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% chassis bootdev bios
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev bios
 exit /b
 ::ipmi_bios
 
 :ipmi_br
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% chassis bootdev bios
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% chassis power cycle
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev bios
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis power cycle
 exit /b
 ::ipmi_br
 
@@ -315,8 +315,8 @@ if /i "%~1" == "efi" (
     goto bdpstart
 )
 :postbdp
-if "%JSA_IPMI_ECHO_EN%" NEQ "0" @echo %clr_e%ipmitool%paraI%%paraU%%paraP% -H %realhost% chassis bootdev %dev% %efiflag% %persflag% %bdargs%%cSuf%
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% chassis bootdev %dev% %efiflag% %persflag% %bdargs%
+if "%JSA_IPMI_ECHO_EN%" NEQ "0" @echo %clr_e%ipmitool -H %realhost%%paraU%%paraP%%paraI% chassis bootdev %dev% %efiflag% %persflag% %bdargs%%cSuf%
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev %dev% %efiflag% %persflag% %bdargs%
 exit /b
 ::bootdevparse
 
@@ -363,7 +363,7 @@ if "%JSA_LOOP_TIMESTAMP_EN%" == "0" (
 call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
 @echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
 :loop_skip_ts
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args%
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %lom_args%
 call:Delay_s %lom_int%
 goto cmd_loop
 ::cmd_loop_pre
@@ -379,10 +379,10 @@ if "%JSA_MNTR_TIMESTAMP_EN%" == "0" (
 call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
 @echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
 :mntr_pre_skip_ts
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args% 1>%monLast% 2>&1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %lom_args% 1>%monLast% 2>&1
 type %monLast%
 :cmd_mntr
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %lom_args% 1>%monCurr% 2>&1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %lom_args% 1>%monCurr% 2>&1
 fc "%monCurr%" "%monLast%" 1>NUL 2>&1 && (
     call:Delay_s %lom_int%
     goto cmd_mntr
@@ -458,8 +458,8 @@ exit /b
 
 :ipmi_default
 if "%op%" == "ipmi" set op=
-if "%JSA_IPMI_ECHO_EN%" NEQ "0" echo %clr_e%ipmitool%paraI%%paraU%%paraP% -H %realhost% %op%%args%%cSuf%
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% %op%%args%
+if "%JSA_IPMI_ECHO_EN%" NEQ "0" echo %clr_e%ipmitool -H %realhost%%paraU%%paraP%%paraI% %op%%args%%cSuf%
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %op%%args%
 exit /b
 ::ipmi_default
 
@@ -489,7 +489,7 @@ if /i "%solow%" == "y" (
 )
 :sol_continue
 @echo deactivating previous SOL session ^(if any^)...
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% sol deactivate 1>nul 2>&1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% sol deactivate 1>nul 2>&1
 if not defined solLfn (call:GenLogFilename %realhost% solLfn 1)
 @type nul >"%solLfn%" || (
     >&2 echo error: unable to create log file
@@ -498,7 +498,7 @@ if not defined solLfn (call:GenLogFilename %realhost% solLfn 1)
 )
 @echo Activated SOL, saving to %SolLfn%
 explorer /select,"%solLfn%"
-%JSA_IPMIT%%paraI%%paraU%%paraP% -H %realhost% sol activate 1>"%solLfn%" 2>&1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% sol activate 1>"%solLfn%" 2>&1
 exit /b
 ::ActSol
 
