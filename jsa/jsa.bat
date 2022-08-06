@@ -255,11 +255,19 @@ set customFound=
 if /i "%op%" == "custom" (
     set customCmd=1
     set "op=%~1"
+    shift /1
 )
+set customcmdargs=
+:customcmdargsloop
+if %1. == . (goto endcustomcmdargsloop)
+set "customcmdargs=%customcmdargs% %1"
+shift /1
+goto customcmdargsloop
+:endcustomcmdargsloop
 if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" (
     set "customFound=1"
     for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
-        call:execline "%%~i"
+        call:execline %%i%customcmdargs%
     )
 )
 if defined customFound exit /b
@@ -272,9 +280,9 @@ if defined customCmd (
 )
 :execline
 if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" (
-    echo %clr_c%ipmitool -H %realhost%%paraU%%paraP%%paraI% %~1%cSuf%
+    echo %clr_c%ipmitool -H %realhost%%paraU%%paraP%%paraI% %*%cSuf%
 )
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %~1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %*
 exit /b
 ::execline
 ::Execute
