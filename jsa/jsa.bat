@@ -295,6 +295,7 @@ exit /b
 :ipmi_br
 %JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev bios
 %JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis power cycle
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis power on 2>nul
 exit /b
 ::ipmi_br
 
