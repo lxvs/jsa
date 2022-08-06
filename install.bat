@@ -9,6 +9,7 @@ set exec=jsa.bat
 set regpath=HKCU\Software\lxvs\jsa
 set silent=
 set term=
+set uninstall=
 set exitcode=0
 :parseargs
 if %1. == . (goto endparseargs)
@@ -19,8 +20,9 @@ if /i "%~1" == "--silent" (
     goto parseargs
 )
 if /i "%~1" == "--uninstall" (
-    call %~dp0uninstall.bat
-    exit /b
+    set uninstall=1
+    shift /1
+    goto parseargs
 )
 if "%~1" == "/?" (goto help)
 if "%~1" == "-?" (goto help)
@@ -31,7 +33,16 @@ if /i "%~1" == "--help" (goto help)
 exit /b 1
 :endparseargs
 
-call %~dp0uninstall.bat --silent
+if defined uninstall (
+    if not defined silent (
+        call %~dp0uninstall.bat
+    ) else (
+        call %~dp0uninstall.bat --silent
+    )
+    exit /b
+) else (
+    call %~dp0uninstall.bat --silent
+)
 
 call:getreg "HKCU\Environment" "Path" UserPath
 call:getreg "%regpath%" "path" installation

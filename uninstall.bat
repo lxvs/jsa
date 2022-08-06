@@ -8,6 +8,7 @@ set name=jsa
 set regpath=HKCU\Software\lxvs\jsa
 set silent=
 set term=
+set install=
 set exitcode=0
 :parseargs
 if %1. == . (goto endparseargs)
@@ -18,8 +19,9 @@ if /i "%~1" == "--silent" (
     goto parseargs
 )
 if /i "%~1" == "--install" (
-    call %~dp0install.bat
-    exit /b
+    set install=1
+    shift /1
+    goto parseargs
 )
 if "%~1" == "/?" (goto help)
 if "%~1" == "-?" (goto help)
@@ -30,6 +32,14 @@ if /i "%~1" == "--help" (goto help)
 exit /b 1
 :endparseargs
 
+if defined install (
+    if not defined silent (
+        call %~dp0install.bat
+    ) else (
+        call %~dp0install.bat --silent
+    )
+    exit /b
+)
 call:getreg "HKCU\Environment" "Path" UserPath
 call:getreg "%regpath%" "path" installation
 setlocal EnableDelayedExpansion
