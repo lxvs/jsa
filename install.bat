@@ -76,17 +76,28 @@ goto end
 
 :getreg
 set %3=
-if "%~2" == "/ve" (
+set getregretval=
+if /i "%~2" == "/ve" (
     set getreg_switch=/ve
     set getreg_key=
-    set getreg_name=default
+    set "getreg_name=(Default)"
 ) else (
     set getreg_switch=/v
-    set "getreg_key=%~2"
+    set getreg_key="%~2"
     set "getreg_name=%~2"
 )
-for /f "skip=2 tokens=1,2*" %%a in ('reg query "%~1" %getreg_switch% "%getreg_key%" 2^>nul') do (
-    if /i "%%~a" == "%getreg_name%" (set "%3=%%~c")
+for /f "skip=2 tokens=1* delims=" %%a in ('reg query "%~1" %getreg_switch% %getreg_key% 2^>nul') do (
+    call:getregparse "%%~a"
+)
+if defined getregretval (set "%3=%getregretval%")
+exit /b
+
+:getregparse
+if "%~1" == "" (exit /b 1)
+set "getregparse_str=%~1"
+set "getregparse_str=%getregparse_str:    =	%
+for /f "tokens=1,2* delims=	" %%A in ("%getregparse_str%") do (
+    if /i "%getreg_name%" == "%%~A" (set "getregretval=%%~C")
 )
 exit /b
 
@@ -94,7 +105,7 @@ exit /b
 echo usage: install.bat
 echo    or: install.bat --silent
 echo    or: install.bat --uninstall
-exit /b
+exit /b 0
 
 :end
 if not defined term (pause)
