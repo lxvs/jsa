@@ -45,7 +45,11 @@ call:getreg "%regpath%" "path" installation
 setlocal EnableDelayedExpansion
 if defined UserPath (
     if not defined silent (
-        if defined installation (setx Path "!UserPath:%installation%;=!" 1>nul)
+        if defined installation (
+            setx Path "!UserPath:%installation%;=!" 1>nul
+        ) else (
+            >&2 echo warning: no installation found; try to uninstall anyway
+        )
         reg delete "%regpath%" /f 1>nul
         reg delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\%name%.exe" /f 1>nul
     ) else (
