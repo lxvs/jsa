@@ -129,7 +129,7 @@ exit /b
 ::SetDefaults
 
 :SetMeta
-set "jsa_version=0.2.0"
+set "jsa_version=0.3.0"
 title Johnny the Sysadmin %jsa_version%
 exit /b
 ::SetMeta
