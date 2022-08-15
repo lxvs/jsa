@@ -75,18 +75,19 @@ if not defined silent (echo Install complete.)
 goto end
 
 :getreg
+set "getreg_path=%~1"
+set getreg_key="%~2"
 set %3=
+set "getreg_name=%~2"
 set getregretval=
-if /i "%~2" == "/ve" (
+if /i "%getreg_key%" == "/ve" (
     set getreg_switch=/ve
     set getreg_key=
     set "getreg_name=(Default)"
 ) else (
     set getreg_switch=/v
-    set getreg_key="%~2"
-    set "getreg_name=%~2"
 )
-for /f "skip=2 tokens=1* delims=" %%a in ('reg query "%~1" %getreg_switch% %getreg_key% 2^>nul') do (
+for /f "skip=2 tokens=1* delims=" %%a in ('reg query "%getreg_path%" %getreg_switch% %getreg_key% 2^>nul') do (
     call:getregparse "%%~a"
 )
 if defined getregretval (set "%3=%getregretval%")
