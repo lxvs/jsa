@@ -4,20 +4,10 @@ call:Prepare
 call:SetDefaults
 call:SetMeta
 call:SetColor
+call:InitVariables
 
-if %1. == . (
-    call:ShowVersion
-    goto main_usage
-)
-set host=
-set args=
-set op=
-set realhost=
-set usrn=
-set pswd=
-set intf=
 :parse
-if %1. == . goto postparse
+if %1. == . (goto postparse)
 if "%~1" == "-H" (
     if %2. == . (
         >&2 echo error: `%~1' needs a value
@@ -65,19 +55,17 @@ if "%~1" == "-H" (
 ) else if /i "%~1" == "--version" (
     call:ShowVersion
     exit /b
-) else if not defined op (
-    set "op=%~1"
-    shift /1
-    goto parse
 ) else (
-    set "args=%args% %1"
+    if not defined op (set "op=%~1")
+    call:appendargs %1
     shift /1
     goto parse
 )
 :postparse
-if not defined usrn set "usrn=%JSA_DEF_USERNAME%"
-if not defined pswd set "pswd=%JSA_DEF_PASSWORD%"
-if not defined intf set "intf=%JSA_DEF_IPMI_INTF%"
+if not defined op (goto lookupusage)
+if not defined usrn (set "usrn=%JSA_DEF_USERNAME%")
+if not defined pswd (set "pswd=%JSA_DEF_PASSWORD%")
+if not defined intf (set "intf=%JSA_DEF_IPMI_INTF%")
 set "paraU= -U %usrn%"
 set "paraP= -P %pswd%"
 set "paraI= -I %intf%"
@@ -93,43 +81,43 @@ exit /b
 
 :Prepare
 set "precd=%cd%"
-if "%precd:~-1%" == "\" set "precd=%precd:~0,-1%"
+if "%precd:~-1%" == "\" (set "precd=%precd:~0,-1%")
 pushd "%~dp0.."
 exit /b
 ::Prepare
 
 :SetDefaults
-if not defined JSA_IPMIT set "JSA_IPMIT=%cd%\ipmitool.exe"
-if not defined JSA_JVIEWER set "JSA_JVIEWER=%cd%\JViewer\JViewer.jar"
-if not defined JSA_SOL_LOG_DIR set "JSA_SOL_LOG_DIR=%cd%\log\sol"
-if not defined JSA_CM_LOG_DIR set "JSA_CM_LOG_DIR=%cd%\log\cm"
-if not defined JSA_IPMI_CUSTOM_DIR set "JSA_IPMI_CUSTOM_DIR=%cd%\custom"
-if not defined JSA_GLOBAL_COLOR_EN set "JSA_GLOBAL_COLOR_EN=1"
-if not defined JSA_IP_PREF set "JSA_IP_PREF=192.168.1"
-if not defined JSA_DEF_HOSTNAME set "JSA_DEF_HOSTNAME="
-if not defined JSA_DEF_USERNAME set "JSA_DEF_USERNAME=admin"
-if not defined JSA_DEF_PASSWORD set "JSA_DEF_PASSWORD=admin"
-if not defined JSA_DEF_IPMI_INTF set "JSA_DEF_IPMI_INTF=lanplus"
-if not defined JSA_IPMI_ECHO_EN set "JSA_IPMI_ECHO_EN=1"
-if not defined JSA_IPMI_ECHO_COLOR set "JSA_IPMI_ECHO_COLOR=cyan"
-if not defined JSA_IPMI_CUSTOM_ECHO_EN set "JSA_IPMI_CUSTOM_ECHO_EN=1"
-if not defined JSA_IPMI_CUSTOM_ECHO_COLOR set "JSA_IPMI_CUSTOM_ECHO_COLOR=cyan"
-if not defined JSA_LOOP_INTERVAL_S set /a "JSA_LOOP_INTERVAL_S=30"
-if not defined JSA_LOOP_TIMESTAMP_EN set "JSA_LOOP_TIMESTAMP_EN=1"
-if not defined JSA_MNTR_INTERVAL_S set /a "JSA_MNTR_INTERVAL_S=30"
-if not defined JSA_MNTR_TIMESTAMP_EN set "JSA_MNTR_TIMESTAMP_EN=1"
-if not defined JSA_CM_PING_RETRY set /a "JSA_CM_PING_RETRY=3"
-if not defined JSA_CM_WEB_RETRY set /a "JSA_CM_WEB_RETRY=2"
-if not defined JSA_CM_LOG_LEVEL set /a "JSA_CM_LOG_LEVEL=2"
-if not defined JSA_CM_COLOR_EN set "JSA_CM_COLOR_EN=1"
-if not defined JSA_CM_WEB_TIMEOUT_S set /a "JSA_CM_WEB_TIMEOUT_S=1"
-if not defined JSA_CM_PING_TIMEOUT_MS set /a "JSA_CM_PING_TIMEOUT_MS=100"
-if not defined JSA_KVM_WEBPORT set /a "JSA_KVM_WEBPORT=443"
+if not defined JSA_IPMIT (set "JSA_IPMIT=%cd%\ipmitool.exe")
+if not defined JSA_JVIEWER (set "JSA_JVIEWER=%cd%\JViewer\JViewer.jar")
+if not defined JSA_SOL_LOG_DIR (set "JSA_SOL_LOG_DIR=%cd%\log\sol")
+if not defined JSA_CM_LOG_DIR (set "JSA_CM_LOG_DIR=%cd%\log\cm")
+if not defined JSA_IPMI_CUSTOM_DIR (set "JSA_IPMI_CUSTOM_DIR=%cd%\custom")
+if not defined JSA_GLOBAL_COLOR_EN (set "JSA_GLOBAL_COLOR_EN=1")
+if not defined JSA_IP_PREF (set "JSA_IP_PREF=192.168.1")
+if not defined JSA_DEF_HOSTNAME (set "JSA_DEF_HOSTNAME=")
+if not defined JSA_DEF_USERNAME (set "JSA_DEF_USERNAME=admin")
+if not defined JSA_DEF_PASSWORD (set "JSA_DEF_PASSWORD=admin")
+if not defined JSA_DEF_IPMI_INTF (set "JSA_DEF_IPMI_INTF=lanplus")
+if not defined JSA_IPMI_ECHO_EN (set "JSA_IPMI_ECHO_EN=1")
+if not defined JSA_IPMI_ECHO_COLOR (set "JSA_IPMI_ECHO_COLOR=cyan")
+if not defined JSA_IPMI_CUSTOM_ECHO_EN (set "JSA_IPMI_CUSTOM_ECHO_EN=1")
+if not defined JSA_IPMI_CUSTOM_ECHO_COLOR (set "JSA_IPMI_CUSTOM_ECHO_COLOR=cyan")
+if not defined JSA_LOOP_INTERVAL_S (set /a "JSA_LOOP_INTERVAL_S=30")
+if not defined JSA_LOOP_TIMESTAMP_EN (set "JSA_LOOP_TIMESTAMP_EN=1")
+if not defined JSA_MNTR_INTERVAL_S (set /a "JSA_MNTR_INTERVAL_S=30")
+if not defined JSA_MNTR_TIMESTAMP_EN (set "JSA_MNTR_TIMESTAMP_EN=1")
+if not defined JSA_CM_PING_RETRY (set /a "JSA_CM_PING_RETRY=3")
+if not defined JSA_CM_WEB_RETRY (set /a "JSA_CM_WEB_RETRY=2")
+if not defined JSA_CM_LOG_LEVEL (set /a "JSA_CM_LOG_LEVEL=2")
+if not defined JSA_CM_COLOR_EN (set "JSA_CM_COLOR_EN=1")
+if not defined JSA_CM_WEB_TIMEOUT_S (set /a "JSA_CM_WEB_TIMEOUT_S=1")
+if not defined JSA_CM_PING_TIMEOUT_MS (set /a "JSA_CM_PING_TIMEOUT_MS=100")
+if not defined JSA_KVM_WEBPORT (set /a "JSA_KVM_WEBPORT=443")
 exit /b
 ::SetDefaults
 
 :SetMeta
-set "jsa_version=0.3.0"
+set jsa_version=0.3.0
 title Johnny the Sysadmin %jsa_version%
 exit /b
 ::SetMeta
@@ -166,7 +154,9 @@ if /i "%JSA_IPMI_ECHO_COLOR%" == "red" (
     @set "clr_e=%cMgt%"
 ) else if /i "%JSA_IPMI_ECHO_COLOR%" == "cyan" (
     @set "clr_e=%cCyn%"
-) else set clr_e=
+) else (
+    set clr_e=
+)
 if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "red" (
     @set "clr_c=%cRed%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "green" (
@@ -179,9 +169,23 @@ if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "red" (
     @set "clr_c=%cMgt%"
 ) else if /i "%JSA_IPMI_CUSTOM_ECHO_COLOR%" == "cyan" (
     @set "clr_c=%cCyn%"
-) else set clr_c=
+) else (
+    set clr_c=
+)
 exit /b
 ::SetColor
+
+:InitVariables
+set host=
+set args=
+set op=
+set realhost=
+set usrn=
+set pswd=
+set intf=
+set executingcustomcmd=
+exit /b
+::InitVariables
 
 :ParseHost
 if not defined host (
@@ -219,56 +223,62 @@ if defined secd (
     set "realhost=%host%"
     exit /b 0
 )
-if defined secc if defined prea (
-    set "realhost=%prea%.%host%"
-    exit /b 0
+if defined secc (
+    if defined prea (
+        set "realhost=%prea%.%host%"
+        exit /b 0
+    )
 )
-if defined secb if defined preb (
-    set "realhost=%prea%.%preb%.%host%"
-    exit /b 0
+if defined secb (
+    if defined preb (
+        set "realhost=%prea%.%preb%.%host%"
+        exit /b 0
+    )
 )
-if defined seca if defined prec (
-    set "realhost=%prea%.%preb%.%prec%.%host%"
-    exit /b 0
+if defined seca (
+    if defined prec (
+        set "realhost=%prea%.%preb%.%prec%.%host%"
+        exit /b 0
+    )
 )
 >&2 echo error: Parsed IP has less than 4 sections.
->&2 echo JSA_IP_PREF = %JSA_IP_PREF%
+>&2 echo JSA_IP_PREF = `%JSA_IP_PREF%'
 >&2 echo Try `jsa host --help' for more information.
 exit /b 1
 ::ParseHost
 
 :Execute
-if /i "%op%" == "ipmi" goto ipmi_default
-if /i "%op%" == "cm" goto cmparsepre
-if /i "%op%" == "custom" goto custom_cmd
-if /i "%op%" == "sol" goto solpre
-if /i "%op%" == "bootdev" goto bootdevparse
-if /i "%op%" == "loop" goto ipmi_loop
-if /i "%op%" == "mntr" goto ipmi_mntr
-if /i "%op%" == "monitor" goto ipmi_mntr
-if /i "%op%" == "kvm" goto kvmparse
+if /i "%op%" == "ipmi" (goto ipmi_default)
+if /i "%op%" == "cm" (goto cmparsepre)
+if /i "%op%" == "custom" (goto custom_cmd)
+if /i "%op%" == "sol" (goto solpre)
+if /i "%op%" == "bootdev" (goto bootdevparse)
+if /i "%op%" == "loop" (goto ipmi_loop)
+if /i "%op%" == "mntr" (goto ipmi_mntr)
+if /i "%op%" == "monitor" (goto ipmi_mntr)
+if /i "%op%" == "kvm" (goto kvmparse)
 :custom_cmd
 set customCmd=
 set customFound=
 if /i "%op%" == "custom" (
     set customCmd=1
-    set "op=%~1"
-    shift /1
-)
-set customcmdargs=
-:customcmdargsloop
-if %1. == . (goto endcustomcmdargsloop)
-set "customcmdargs=%customcmdargs% %1"
-shift /1
-goto customcmdargsloop
-:endcustomcmdargsloop
-if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" (
-    set "customFound=1"
-    for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
-        call:execline %%i%customcmdargs%
+    call:poparg
+    set "op=%~2"
+    if not defined op (
+        >&2 echo error: no custom command provided
+        >&2 echo Try `jsa custom --help' for more information.
+        exit /b 1
     )
 )
-if defined customFound exit /b
+if exist "%JSA_IPMI_CUSTOM_DIR%\%op%.txt" (set customFound=1)
+if defined customFound (if not defined executingcustomcmd (call:collectcustomcmdargs %args%))
+if defined customFound (
+    for /f "usebackq eol=# delims=" %%i in ("%JSA_IPMI_CUSTOM_DIR%\%op%.txt") do (
+        call:setargs %%i %customcmdargs%
+        call:execline %%i %customcmdargs% || exit /b
+    )
+    exit /b
+)
 if defined customCmd (
     >&2 echo error: custom command `%op%' not found
     >&2 echo Try `jsa custom --help' for more information.
@@ -276,68 +286,83 @@ if defined customCmd (
 ) else (
     goto ipmi_default
 )
-:execline
-if "%JSA_IPMI_CUSTOM_ECHO_EN%" NEQ "0" (
-    echo %clr_c%ipmitool -H %realhost%%paraU%%paraP%%paraI% %*%cSuf%
-)
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %*
-exit /b
-::execline
 ::Execute
 
+:collectcustomcmdargs
+set executingcustomcmd=1
+set "orig_op=%op%"
+set "orig_args=%args%"
+call:poparg
+set "customcmdargs=%args%"
+set "args=%orig_args%"
+exit /b
+::collectcustomcmdargs
+
+:execline
+if /i "%~1" == "%orig_op%" (
+    >&2 echo error: self-recursive custom command: `%orig_op%'
+    exit /b 1
+)
+set "op=%~1"
+call:Execute %args%
+exit /b
+::execline
+
 :bootdevparse
-set "dev=%~1"
-shift /1
+call:poparg
+call:poparg || (
+    >&2 echo error: no bootdev device specified
+    >&2 echo usage: jsa bootdev DEVICE [efi] [persistent] [OPTIONS...]
+    exit /b 1
+)
+set "dev=%popedarg%"
 set efiflag=
 set persflag=
 :bdpstart
-if %1. == . (goto postbdp)
-if /i "%~1" == "efi" (
+call:poparg || goto postbdp
+if /i "%popedarg%" == "efi" (
     set "efiflag=options=efiboot"
-    shift /1
     goto bdpstart
-) else if /i "%~1" == "efiboot" (
+) else if /i "%popedarg%" == "efiboot" (
     set "efiflag=options=efiboot"
-    shift /1
     goto bdpstart
-) else if /i "%~1" == "persistent" (
+) else if /i "%popedarg%" == "persistent" (
     set "persflag=options=persistent"
-    shift /1
     goto bdpstart
 ) else (
-    set "bdargs=%bdargs% %1"
-    shift /1
+    set "bdargs=%bdargs%"%popedarg%" "
     goto bdpstart
 )
 :postbdp
-if "%JSA_IPMI_ECHO_EN%" NEQ "0" @echo %clr_e%ipmitool -H %realhost%%paraU%%paraP%%paraI% chassis bootdev %dev% %efiflag% %persflag% %bdargs%%cSuf%
+if "%JSA_IPMI_ECHO_EN%" NEQ "0" (
+    @echo %clr_e%ipmitool -H %realhost%%paraU%%paraP%%paraI% chassis bootdev %dev% %efiflag% %persflag% %bdargs% %cSuf%
+)
 %JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% chassis bootdev %dev% %efiflag% %persflag% %bdargs%
 exit /b
 ::bootdevparse
 
 :ipmi_loop
 set "lom=loop"
+call:poparg
 goto lomstart
+
 :ipmi_mntr
 set "lom=mntr"
+call:poparg
+goto lomstart
+
 :lomstart
-if %1 == . (
-    >&2 echo error: no command provided
-    >&2 echo Try `jsa --help' for more information.
+set lom_int=
+call:poparg || (
+    >&2 echo error: no loop or monitor command provided
+    >&2 echo Try `jsa loop --help' for more information.
     exit /b 1
 )
-if "%~1" == "0" goto lomparse
-set /a "lom_int=%~1" 2>nul || goto lomparse
-if "%lom_int%" == "%~1" (
-    shift /1
-)
+if "%popedarg%" == "0" goto lomparse
+set /a "lom_int=%popedarg%" 2>nul || goto lomparse
+if "%lom_int%" NEQ "%popedarg%" (call:pushargs "%popedarg%")
 :lomparse
-if "%lom_int%" == "0" set lom_int=
-if %1. NEQ . (
-    set "lom_args=%lom_args% %1"
-    shift /1
-    goto lomparse
-)
+if "%lom_int%" == "0" (set lom_int=)
 if /i "%lom%" == "mntr" (
     goto cmd_mntr_pre
 ) else if /i "%lom%" == "loop" (
@@ -358,7 +383,7 @@ if "%JSA_LOOP_TIMESTAMP_EN%" == "0" (
 call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
 @echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
 :loop_skip_ts
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %lom_args%
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %args%
 call:Delay_s %lom_int%
 goto cmd_loop
 ::cmd_loop_pre
@@ -374,10 +399,10 @@ if "%JSA_MNTR_TIMESTAMP_EN%" == "0" (
 call:GetTime lpYear lpMon lpDay lpHour lpMin lpSec
 @echo %cYlw%%lpYear%-%lpMon%-%lpDay% %lpHour%:%lpMin%:%lpSec%%cSuf%
 :mntr_pre_skip_ts
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %lom_args% 1>%monLast% 2>&1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %args% 1>%monLast% 2>&1
 type %monLast%
 :cmd_mntr
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %lom_args% 1>%monCurr% 2>&1
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %args% 1>%monCurr% 2>&1
 fc "%monCurr%" "%monLast%" 1>NUL 2>&1 && (
     call:Delay_s %lom_int%
     goto cmd_mntr
@@ -395,66 +420,68 @@ goto cmd_mntr
 ::cmd_mntr_pre
 
 :solpre
-if %1. == . (
+if %2. == . (
     call:ActSol
     exit /b
 )
-if %2. NEQ . (goto ipmi_default)
-set "solArg=%~1"
+if %3. NEQ . (goto ipmi_default)
+set "solArg=%~2"
 if /i "%solArg:~-4%" == ".log" (
     call:ActSol %solArg%
     exit /b
 ) else if /i "%solArg:~-4%" == ".txt" (
     call:ActSol %solArg%
     exit /b
-) else goto ipmi_default
+) else (
+    goto ipmi_default
+)
 ::solpre
 
 :kvmparse
 set kvm_wp=
 set kvm_args=
 if not exist "%JSA_JVIEWER%" (
-    >&2 echo error: unable to find JViewer.jar in %JSA_JVIEWER%
+    >&2 echo error: unable to find JViewer.jar in `%JSA_JVIEWER%'
     >&2 echo Please defined the path to JViewer.jar in variable `JSA_JVIEWER'.
     exit /b 1
 )
 :kvmparseloop
-if %1. == . (goto kvmstart)
-if /i "%~1" == "-w" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if %2. == . (goto kvmstart)
+if /i "%~2" == "-w" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set /a "kvm_wp=%~2"
-    shift /1
-    shift /1
+    set /a "kvm_wp=%~3"
+    shift /2
+    shift /2
     goto kvmparseloop
 )
-if /i "%~1" == "--web-port" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "--web-port" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set /a "kvm_wp=%~2"
-    shift /1
-    shift /1
+    set /a "kvm_wp=%~3"
+    shift /2
+    shift /2
     goto kvmparseloop
 )
-set "kvm_args=%kvm_args% %1"
-shift /1
+set "kvm_args=%kvm_args% %2"
+shift /2
 goto kvmparseloop
 
 :kvmstart
-if not defined kvm_wp set "kvm_wp=%JSA_KVM_WEBPORT%"
-if not defined kvm_wp set "kvm_wp=443"
+if not defined kvm_wp (set "kvm_wp=%JSA_KVM_WEBPORT%")
+if not defined kvm_wp (set "kvm_wp=443")
 start "" "%JSA_JVIEWER%" -hostname "%realhost%" -u "%usrn%" -p "%pswd%" -webport %kvm_wp% %kvm_args%
 exit /b
 ::kvmparse
 
 :ipmi_default
-if "%op%" == "ipmi" set op=
-if "%JSA_IPMI_ECHO_EN%" NEQ "0" echo %clr_e%ipmitool -H %realhost%%paraU%%paraP%%paraI% %op%%args%%cSuf%
-%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %op%%args%
+if "%op%" == "ipmi" (call:poparg)
+if "%JSA_IPMI_ECHO_EN%" NEQ "0" (@echo %clr_e%ipmitool -H %realhost%%paraU%%paraP%%paraI% %args%%cSuf%)
+%JSA_IPMIT% -H %realhost%%paraU%%paraP%%paraI% %args%
 exit /b
 ::ipmi_default
 
@@ -506,101 +533,108 @@ set "cm_log=%JSA_CM_LOG_LEVEL%"
 set "cm_ping=%JSA_CM_PING_RETRY%"
 set "cm_web=%JSA_CM_WEB_RETRY%"
 :cmparse
-if /i %1. == . (goto postCmParse)
-if /i "%~1" == "-l" (
+if /i %2. == . (goto postCmParse)
+if /i "%~2" == "-l" (
     set "cmlegacy=1"
-    shift /1
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "--legacy" (
+if /i "%~2" == "--legacy" (
     set "cmlegacy=1"
-    shift /1
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "-g" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "-g" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set "cm_log_input=%~2"
-    shift /1
-    shift /1
+    set "cm_log_input=%~3"
+    shift /2
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "--log-level" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "--log-level" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set "cm_log_input=%~2"
-    shift /1
-    shift /1
+    set "cm_log_input=%~3"
+    shift /2
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "-p" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "-p" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set "cm_ping_input=%~2"
-    shift /1
-    shift /1
+    set "cm_ping_input=%~3"
+    shift /2
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "--ping-retry" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "--ping-retry" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set "cm_ping_input=%~2"
-    shift /1
-    shift /1
+    set "cm_ping_input=%~3"
+    shift /2
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "-w" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "-w" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set "cm_web_input=%~2"
-    shift /1
-    shift /1
+    set "cm_web_input=%~3"
+    shift /2
+    shift /2
     goto cmparse
 )
-if /i "%~1" == "--web-retry" (
-    if %2. == . (
-        >&2 echo error: `%~1' requires a value
+if /i "%~2" == "--web-retry" (
+    if %3. == . (
+        >&2 echo error: `%~2' requires a value
         exit /b 1
     )
-    set "cm_web_input=%~2"
-    shift /1
-    shift /1
+    set "cm_web_input=%~3"
+    shift /2
+    shift /2
     goto cmparse
 )
->&2 echo error: invalid switch: `%~1'
+>&2 echo error: invalid switch: `%~2'
 >&2 echo Try `jsa --help' for more information.
 exit /b 1
+
 :postCmParse
 set /a "cm_log_input_a=cm_log_input"
 set /a "cm_ping_input_a=cm_ping_input"
 set /a "cm_web_input_a=cm_web_input"
-if defined cm_log_input if "%cm_log_input_a%" == "%cm_log_input%" (
-    set /a "cm_log=cm_log_input_a"
-) else (
-    >&2 echo warning: Parameter log_level was designated but did not applied.
+if defined cm_log_input (
+    if "%cm_log_input_a%" == "%cm_log_input%" (
+        set /a "cm_log=cm_log_input_a"
+    ) else (
+        >&2 echo warning: Parameter log_level was designated but did not applied.
+    )
 )
-if defined cm_ping_input if "%cm_ping_input_a%" == "%cm_ping_input%" (
-    set /a "cm_ping=cm_ping_input_a"
-) else (
-    >&2 echo warning: Parameter ping_retry was designated but did not applied.
+if defined cm_ping_input (
+    if "%cm_ping_input_a%" == "%cm_ping_input%" (
+        set /a "cm_ping=cm_ping_input_a"
+    ) else (
+        >&2 echo warning: Parameter ping_retry was designated but did not applied.
+    )
 )
-if defined cm_web_input if "%cm_web_input_a%" == "%cm_web_input%" (
-    set /a "cm_web=cm_web_input_a"
-) else (
-    >&2 echo warning: Parameter web_retry was designated but did not applied.
+if defined cm_web_input (
+    if "%cm_web_input_a%" == "%cm_web_input%" (
+        set /a "cm_web=cm_web_input_a"
+    ) else (
+        >&2 echo warning: Parameter web_retry was designated but did not applied.
+    )
 )
 title Johnny the Sysadmin %jsa_version% - CM %realhost%
-if not exist "%JSA_CM_LOG_DIR%" md "%JSA_CM_LOG_DIR%"
+if not exist "%JSA_CM_LOG_DIR%" (md "%JSA_CM_LOG_DIR%")
 set "cmCurrentStatus="
 set "cmEwsStatus="
 set "cmLastHttpCode="
@@ -621,7 +655,9 @@ if not defined cmlegacy (
     call:CmWrite "Web timeout:   %JSA_CM_WEB_TIMEOUT_S% s" 0 0
     call:CmWrite "Log level:     %cm_log%" 0 0
     if %cm_log% GTR 0 call:CmWrite "Log directory: %JSA_CM_LOG_DIR%" 0 0
-) else call:CmWrite "Log directory: %JSA_CM_LOG_DIR%" 0 0
+) else (
+    call:CmWrite "Log directory: %JSA_CM_LOG_DIR%" 0 0
+)
 call:CmWrite "------------------------------------------------------" 0 0
 
 :cmloop
@@ -633,68 +669,73 @@ for /f "skip=2 tokens=1-8 delims= " %%a in ('ping %realhost% -n 1 -w %JSA_CM_PIN
 if /i "%TtlSeg:~0,3%" == "TTL" (
     call:CmWrite "ping: OK." 2
     if not defined cmCurrentStatus (
-        set "cmCurrentStatus=g"
-        if not defined cmlegacy call:CmWrite "debug: calling GHC because status is not defined." 8
-        if not defined cmlegacy (call:CmGetHttpCode) else call:CmWrite "%cmPingOrgG%" g
+        set cmCurrentStatus=g
+        if not defined cmlegacy (call:CmWrite "debug: calling GHC because status is not defined." 8)
+        if not defined cmlegacy (call:CmGetHttpCode) else (call:CmWrite "%cmPingOrgG%" g)
         call:Delay_s 1
         goto cmloop
     )
     if /i "%cmCurrentStatus%" == "b" (
-        set "cmCurrentStatus=g"
-        if not defined cmlegacy call:CmWrite "debug: calling GHC because status turns good." 8
-        if not defined cmlegacy (call:CmGetHttpCode) else call:CmWrite "%cmPingTrnG%" g
+        set cmCurrentStatus=g
+        if not defined cmlegacy (call:CmWrite "debug: calling GHC because status turns good." 8)
+        if not defined cmlegacy (call:CmGetHttpCode) else (call:CmWrite "%cmPingTrnG%" g)
         call:Delay_s 1
         goto cmloop
     )
     if /i "%cmCurrentStatus:~0,1%" == "b" (
-        set "cmCurrentStatus=g"
+        set cmCurrentStatus=g
         call:CmWrite "Just jitters, ignored." 1
-        if not defined cmlegacy call:CmWrite "debug: calling GHC because of jitters." 8
-        if not defined cmlegacy call:CmGetHttpCode
+        if not defined cmlegacy (
+            call:CmWrite "debug: calling GHC because of jitters." 8
+            call:CmGetHttpCode
+        )
         call:Delay_s 1
         goto cmloop
     )
-    if not defined cmlegacy call:CmWrite "debug: calling GHC mandatorily." 8
-    if not defined cmlegacy call:CmGetHttpCode
+    if not defined cmlegacy (
+        call:CmWrite "debug: calling GHC mandatorily." 8
+        call:CmGetHttpCode
+    )
     call:Delay_s 1
     goto cmloop
 )
 call:CmWrite "ping: failed!" 2
-if not defined cmCurrentStatus goto CmWriteBad
-if /i "%cmCurrentStatus%" == "b" goto cmloop
-if /i "%cmCurrentStatus:~0,1%" == "b" goto CmPingTrans
+if not defined cmCurrentStatus (goto CmWriteBad)
+if /i "%cmCurrentStatus%" == "b" (goto cmloop)
+if /i "%cmCurrentStatus:~0,1%" == "b" (goto CmPingTrans)
 if %cm_ping% GTR 0 (
     set "cmCurrentStatus=b0"
     call:CmWrite "Ping failed, retrying." 1
     goto cmloop
-) else goto CmWriteBad
-::cmloop
+) else (
+    goto CmWriteBad
+)
 
 :CmGetHttpCode
 for /f %%i in ('curl -m %JSA_CM_WEB_TIMEOUT_S% -so /dev/null -Iw %%{http_code} %realhost%') do (
-    call:CmWrite "debug: HTTP code updated:   %cmLastHttpCode% to %%i" 8
+    call:CmWrite "debug: HTTP code updated:   %cmLastHttpCode% to %%~i" 8
     call:CmWrite "debug: BMC web status:      %cmEwsStatus%" 8
-    call:CmWrite "HTTP code: %%i" 2
-    if "%%i" NEQ "%cmLastHttpCode%" (
-        set "cmLastHttpCode=%%i"
-        call:CmWrite "HTTP code updated: %%i" 1
+    call:CmWrite "HTTP code: %%~i" 2
+    if "%%~i" NEQ "%cmLastHttpCode%" (
+        set "cmLastHttpCode=%%~i"
+        call:CmWrite "HTTP code updated: %%~i" 1
     )
-    if "%%i" == "000" (
+    if "%%~i" == "000" (
         if not defined cmEwsStatus (
             call:CmWrite "%cmEwsOrgB%" y
-            set "cmEwsStatus=b"
+            set cmEwsStatus=b
         ) else if /i "%cmEwsStatus%" NEQ "b" (
             if /i "%cmEwsStatus:~0,1%" == "b" (
                 call:CmWebTrans
                 exit /b
             )
             if %cm_web% GTR 0 (
-                set "cmEwsStatus=b0"
+                set cmEwsStatus=b0
                 call:CmWrite "EWS seems down, retrying." 1
                 exit /b
             ) else (
                 call:CmWrite "%cmEwsTrnB%" y
-                set "cmEwsStatus=b"
+                set cmEwsStatus=b
             )
         )
     ) else (
@@ -703,7 +744,7 @@ for /f %%i in ('curl -m %JSA_CM_WEB_TIMEOUT_S% -so /dev/null -Iw %%{http_code} %
         ) else if /i "%cmEwsStatus%" == "b" (
             call:CmWrite "%cmEwsTrnG%" g
         )
-        set "cmEwsStatus=g"
+        set cmEwsStatus=g
     )
 )
 exit /b
@@ -711,34 +752,34 @@ exit /b
 
 :CmPingTrans
 set /a "cmPingRetried=%cmCurrentStatus:~-1%"
-set /a "cmPingRetried+=1"
+set /a cmPingRetried+=1
 set "cmCurrentStatus=b%cmPingRetried%"
-if /i "%cmEwsStatus:~0,1%" == "b" if /i "%cmEwsStatus%" NEQ "b" set /a "cmPingRetried=cm_ping"
+if /i "%cmEwsStatus:~0,1%" == "b" (if /i "%cmEwsStatus%" NEQ "b" (set /a "cmPingRetried=cm_ping"))
 call:CmWrite "Ping failed, retried = %cmPingRetried%." 1
 if %cmPingRetried% GEQ %cm_ping% (
-    set "cmPingRetried="
+    set cmPingRetried=
     goto CmWriteBad
 )
 goto cmloop
 ::CmPingTrans
 
 :CmWriteBad
-set "cmCurrentStatus=b"
-set "cmEwsStatus="
-set "cmLastHttpCode="
+set cmCurrentStatus=b
+set cmEwsStatus=
+set cmLastHttpCode=
 call:CmWrite "%cmPingB%" r
 goto cmloop
 ::CmWriteBad
 
 :CmWebTrans
 set /a "cmEwsRetried=%cmEwsStatus:~-1%"
-set /a "cmEwsRetried+=1"
+set /a cmEwsRetried+=1
 set "cmEwsStatus=b%cmEwsRetried%"
 call:CmWrite "EWS seems down, retried = %cmEwsRetried%." 1
 if %cmEwsRetried% GEQ %cm_web% (
-    set "cmEwsRetried="
+    set cmEwsRetried=
     call:CmWrite "%cmEwsTrnB%" y
-    set "cmEwsStatus=b"
+    set cmEwsStatus=b
 )
 exit /b
 ::CmWebTrans
@@ -750,13 +791,13 @@ exit /b
 @REM %3: iftimestamp (0/1) default 1
 set "cmClr=%~2"
 set "cmIfts=%~3"
-if not defined cmIfts set "cmIfts=1"
-set /a "cmMsgLvl=cmClr"
-set "cmPre="
-set "cmSuf="
-if "%JSA_CM_COLOR_EN%" == "0" goto cmcontinue
-if not defined cmClr goto cmcontinue
-if "%cmClr%" == "%cmMsgLvl%" goto cmcontinue
+if not defined cmIfts (set cmIfts=1)
+set /a cmMsgLvl=cmClr
+set cmPre=
+set cmSuf=
+if "%JSA_CM_COLOR_EN%" == "0" (goto cmcontinue)
+if not defined cmClr (goto cmcontinue)
+if "%cmClr%" == "%cmMsgLvl%" (goto cmcontinue)
 if /i "%cmClr%" == "r" (
     @set "cmPre=%cRed%"
     goto cmcontinue
@@ -782,41 +823,31 @@ if /i "%cmClr%" == "c" (
     goto cmcontinue
 )
 :cmcontinue
-@if defined cmPre set "cmSuf=%cSuf%"
-if "%cmMsgLvl%" NEQ "0" if %cmMsgLvl% GEQ %cm_log% exit /b 0
-if "%cmIfts%" NEQ "0" call:GetTime cmYear cmMon cmDay cmHour cmMin cmSec
-if "%cmIfts%" NEQ "0" (
-    set "cmTimeStamp=%cmyear%-%cmmon%-%cmday% %cmhour%:%cmmin%:%cmsec%"
-) else set "cmTimeStamp="
+@if defined cmPre (set "cmSuf=%cSuf%")
+if %cmMsgLvl% NEQ 0 (if %cmMsgLvl% GEQ %cm_log% (exit /b 0))
+if "%cmIfts%" NEQ "0" (call:GetTime cmYear cmMon cmDay cmHour cmMin cmSec)
+if "%cmIfts%" NEQ "0" (set "cmTimeStamp=%cmyear%-%cmmon%-%cmday% %cmhour%:%cmmin%:%cmsec%") else (set cmTimeStamp=)
 set "cmLogMsg=%~1"
-if %cmMsgLvl% EQU 0 @echo %cmpre%%cmTimeStamp% %cmLogMsg%%cmsuf%
-if %cmMsgLvl% GEQ %cm_log% exit /b 0
-if not exist "%JSA_CM_LOG_DIR%" md "%JSA_CM_LOG_DIR%"
-if %cmMsgLvl% EQU 0 >>"%JSA_CM_LOG_DIR%\%realhost%.log" echo %cmTimeStamp% %cmLogMsg%
-if %cm_log% LEQ 1 exit /b 0
-if %cmMsgLvl% LSS %cm_log% >>"%JSA_CM_LOG_DIR%\%realhost%.verbose.log" echo %cmTimeStamp% %cmLogMsg%
+if %cmMsgLvl% EQU 0 (@echo %cmpre%%cmTimeStamp% %cmLogMsg%%cmsuf%)
+if %cmMsgLvl% GEQ %cm_log% (exit /b 0)
+if not exist "%JSA_CM_LOG_DIR%" (md "%JSA_CM_LOG_DIR%")
+if %cmMsgLvl% EQU 0 (>>"%JSA_CM_LOG_DIR%\%realhost%.log" echo %cmTimeStamp% %cmLogMsg%)
+if %cm_log% LEQ 1 (exit /b 0)
+if %cmMsgLvl% LSS %cm_log% (>>"%JSA_CM_LOG_DIR%\%realhost%.verbose.log" echo %cmTimeStamp% %cmLogMsg%)
 exit /b 0
 ::CmWrite
 
 :GetTime
 for /f "tokens=1-6 usebackq delims=_" %%a in (`powershell -command "&{Get-Date -format 'yyyy_MM_dd_HH_mm_ss'}"`) do (
-    if "%1" NEQ "" set "%1=%%a" else exit /b
-    if "%2" NEQ "" set "%2=%%b" else exit /b
-    if "%3" NEQ "" set "%3=%%c" else exit /b
-    if "%4" NEQ "" set "%4=%%d" else exit /b
-    if "%5" NEQ "" set "%5=%%e" else exit /b
-    if "%6" NEQ "" set "%6=%%f" else exit /b
+    if "%~1" NEQ "" (set "%~1=%%a") else (exit /b)
+    if "%~2" NEQ "" (set "%~2=%%b") else (exit /b)
+    if "%~3" NEQ "" (set "%~3=%%c") else (exit /b)
+    if "%~4" NEQ "" (set "%~4=%%d") else (exit /b)
+    if "%~5" NEQ "" (set "%~5=%%e") else (exit /b)
+    if "%~6" NEQ "" (set "%~6=%%f") else (exit /b)
 )
 exit /b
 ::GetTime
-
-:ShowVersion
-@echo;
-@echo     Johnny the Sysadmin %jsa_version%
-@echo     https://github.com/lxvs/jsa
-@echo;
-exit /b
-::ShowVersion
 
 :Delay_s
 setlocal
@@ -827,20 +858,71 @@ endlocal
 exit /b
 ::Delay_s
 
+:setargs
+set args=
+:setargs_loop
+if %1. == . (exit /b)
+set "args=%args%"%~1" "
+shift /1
+goto setargs_loop
+
+:appendargs
+if %1. == . (exit /b)
+set "args=%args%"%~1" "
+shift /1
+goto appendargs
+
+:pushargs
+if "%~1" == "" (exit /b)
+set "args="%~1" %args%"
+shift /1
+goto pushargs
+
+:poparg
+set popedarg=
+set _args=
+if not defined args (exit /b 1)
+call:poparg_setfirst %args%
+call:poparg_start %args%
+set "args=%_args%"
+exit /b
+::poparg
+
+:poparg_setfirst
+set "popedarg=%~1"
+if %2. == . (exit /b)
+set "_args="%~2""
+exit /b
+::poparg_setfirst
+
+:poparg_start
+if %3. == . (exit /b)
+shift /2
+set "_args=%_args% "%~2""
+goto poparg_start
+
+:ShowVersion
+@echo;
+@echo     Johnny the Sysadmin %jsa_version%
+@echo     https://github.com/lxvs/jsa
+@echo;
+exit /b
+::ShowVersion
+
 :lookupusage
 if defined op (
-    if /i "%op%" == "ipmi" goto %op%_usage
-    if /i "%op%" == "cm" goto %op%_usage
-    if /i "%op%" == "kvm" goto %op%_usage
-    if /i "%op%" == "custom" goto %op%_usage
-    if /i "%op%" == "host" goto %op%_usage
-    if /i "%op%" == "var" goto %op%_usage
-    if /i "%op%" == "loop" goto ipmi_usage
-    if /i "%op%" == "mntr" goto ipmi_usage
-    if /i "%op%" == "sol" goto ipmi_usage
-    if /i "%op%" == "bootdev" goto ipmi_usage
-    if /i "%op%" == "jviewer" goto kvm_usage
-    if /i "%op%" == "ip" goto host_usage
+    if /i "%op%" == "ipmi" (goto %op%_usage)
+    if /i "%op%" == "cm" (goto %op%_usage)
+    if /i "%op%" == "kvm" (goto %op%_usage)
+    if /i "%op%" == "custom" (goto %op%_usage)
+    if /i "%op%" == "host" (goto %op%_usage)
+    if /i "%op%" == "var" (goto %op%_usage)
+    if /i "%op%" == "loop" (goto ipmi_usage)
+    if /i "%op%" == "mntr" (goto ipmi_usage)
+    if /i "%op%" == "sol" (goto ipmi_usage)
+    if /i "%op%" == "bootdev" (goto ipmi_usage)
+    if /i "%op%" == "jviewer" (goto kvm_usage)
+    if /i "%op%" == "ip" (goto host_usage)
 )
 call:ShowVersion
 goto main_usage
