@@ -74,8 +74,6 @@ if "%JSA_CM_COLOR_EN%" == "0" (
 ) else (
     @set "cmSuf=%cSuf%"
 )
-
-call:ParseHost %host% || exit /b
 call:Execute %args%
 exit /b
 
@@ -188,6 +186,7 @@ exit /b
 ::InitVariables
 
 :ParseHost
+if defined realhost (exit /b)
 if not defined host (
     if defined JSA_DEF_HOSTNAME (
         set "realhost=%JSA_DEF_HOSTNAME%"
@@ -247,7 +246,39 @@ if defined seca (
 exit /b 1
 ::ParseHost
 
+:sleep
+call:poparg
+call:poparg || (
+    >&2 echo error: too few arguments
+    >&2 echo Try `jsa sleep --help' for more information.
+    exit /b 1
+)
+if defined args (
+    >&2 echo error: too many arguments
+    >&2 echo Try `jsa sleep --help' for more information.
+    exit /b 1
+)
+set "sleepsec=%popedarg%"
+set /a "sleepsec_a=%sleepsec%" 2>nul || (
+    >&2 echo error: invalid sleep value `%sleepsec%'
+    exit /b 1
+)
+if "%sleepsec_a%" NEQ "%sleepsec%" (
+    >&2 echo error: invalid sleep value `%sleepsec%'
+    exit /b 1
+)
+if "%sleepsec_a%" LEQ "0" (
+    >&2 echo error: invalid value `%sleep%' for --sleep
+    exit /b 1
+)
+@echo %clr_e%sleep %sleepsec_a% second^(s^)%cSuf%
+call:Delay_s %sleepsec_a%
+exit /b
+::sleep
+
 :Execute
+if /i "%op%" == "sleep" (goto sleep)
+call:ParseHost %host% || exit /b
 if /i "%op%" == "ipmi" (goto ipmi_default)
 if /i "%op%" == "cm" (goto cmparsepre)
 if /i "%op%" == "custom" (goto custom_cmd)
@@ -917,6 +948,7 @@ if defined op (
     if /i "%op%" == "custom" (goto %op%_usage)
     if /i "%op%" == "host" (goto %op%_usage)
     if /i "%op%" == "var" (goto %op%_usage)
+    if /i "%op%" == "sleep" (goto %op%_usage)
     if /i "%op%" == "loop" (goto ipmi_usage)
     if /i "%op%" == "mntr" (goto ipmi_usage)
     if /i "%op%" == "sol" (goto ipmi_usage)
@@ -939,6 +971,7 @@ exit /b
 @echo     custom      send custom ipmi commands
 @echo     cm          connection monitor
 @echo     kvm         KVM
+@echo     sleep       sleep specific second^(s^)
 @echo;
 @echo Try `jsa OPERATION --help' for more information on OPERATION.
 @echo Try `jsa host --help' for description of IPv4 hostname shorthand.
@@ -1157,3 +1190,10 @@ exit /b
 @echo     Secure web port of JViewer, default 443
 exit /b
 ::var_usage
+
+:sleep_usage
+@echo usage: jsa sleep N
+@echo;
+@echo Sleep N seconds and exit. N is a positive integer.
+exit /b
+::sleep_usage
