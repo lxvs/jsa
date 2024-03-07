@@ -83,9 +83,10 @@ class IpmiTool:
             self.version = self.get_ipmitool_version()
             return
 
-        if shutil.which('ipmitool'):
-            self.type = self.ToolType.BUNDLED
-            self.path = bundled_tool
+        which = shutil.which('ipmitool')
+        if which is not None:
+            self.type = self.ToolType.SHELL
+            self.path = which
             self.version = self.get_ipmitool_version()
 
     def get_ipmitool_version(self) -> str:
