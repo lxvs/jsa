@@ -1,3 +1,6 @@
 /custom/
 /log/
 /JViewer/jar/
+/*.spec
+/build/
+/dist/
