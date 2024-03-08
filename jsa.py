@@ -8,9 +8,10 @@ import shutil
 import argparse
 import subprocess
 from enum import Enum
+from pathlib import Path
 
 class IpmiTool:
-    path: str | None = None
+    path: Path | None = None
     version: str | None = None
     type: "IpmiTool.ToolType" = None
     hostname: str | None = None
@@ -37,7 +38,7 @@ class IpmiTool:
     ) -> None:
         self.type = self.ToolType.NONE
         if tool_path is not None:
-            self.path = tool_path
+            self.path = Path(tool_path)
             self.type = self.ToolType.ARG
         self.get_ipmitool()
         self.hostname = hostname
@@ -54,7 +55,7 @@ class IpmiTool:
             3. executable ipmitool from shell
         """
         if self.type is self.ToolType.ARG:
-            if not os.path.isfile(self.path):
+            if not self.path.is_file():
                 raise InvalidIpmiTool(f"ipmitool not found: {self.path}")
             if not os.access(self.path, os.X_OK):
                 raise InvalidIpmiTool(f"ipmitool not executable: {self.path}")
@@ -65,19 +66,19 @@ class IpmiTool:
         if os.environ.get('IPMITOOL_PATH') is not None:
             if os.access(os.environ['IPMITOOL_PATH'], os.X_OK):
                 self.type = self.ToolType.IPMITOOL_PATH
-                self.path = os.environ['IPMITOOL_PATH']
+                self.path = Path(os.environ['IPMITOOL_PATH'])
                 self.version = self.get_ipmitool_version()
                 return
 
-        bundled_tool = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'ipmitool')
+        bundled_tool = Path(__file__).resolve().parent / 'ipmitool'
         if sys.platform.startswith('linux'):
-            bundled_tool = os.path.join(bundled_tool, 'ipmitool')
+            bundled_tool = bundled_tool / 'ipmitool'
         elif sys.platform.startswith('win'):
-            bundled_tool = os.path.join(bundled_tool, 'ipmitool.exe')
+            bundled_tool = bundled_tool / 'ipmitool.exe'
         else:
             bundled_tool = None
 
-        if os.path.isfile(bundled_tool) and os.access(bundled_tool, os.X_OK):
+        if bundled_tool.is_file() and os.access(bundled_tool, os.X_OK):
             self.type = self.ToolType.BUNDLED
             self.path = bundled_tool
             self.version = self.get_ipmitool_version()
@@ -86,7 +87,7 @@ class IpmiTool:
         which = shutil.which('ipmitool')
         if which is not None:
             self.type = self.ToolType.SHELL
-            self.path = which
+            self.path = Path(which)
             self.version = self.get_ipmitool_version()
 
     def get_ipmitool_version(self) -> str:
@@ -94,7 +95,7 @@ class IpmiTool:
 
     def run(self, args: list) -> int:
         if self.dry_run:
-            print(' '.join([self.path] + args))
+            print(' '.join([str(self.path)] + args))
             return 0
 
         try:
