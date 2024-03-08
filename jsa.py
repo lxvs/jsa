@@ -90,7 +90,7 @@ class IpmiTool:
             self.version = self.get_ipmitool_version()
 
     def get_ipmitool_version(self) -> str:
-        return subprocess.check_output([self.path, '-V'], encoding='utf-8')
+        return subprocess.check_output([self.path, '-V'], encoding='utf-8').strip()
 
     def run(self, args: list) -> int:
         if self.dry_run:
