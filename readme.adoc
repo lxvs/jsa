@@ -16,8 +16,25 @@ toc::[]
 
 === Shortcut IPMI Commands
 
+* [x] JSA_IP_PREF Support
+* [ ] profile support (a hostname, a username, and a password as a profile)
+
+=== Shortcut Redfish Commands
+
+* [ ] TBD
+
 === Custom IPMI Commands
+
+* [ ] custom IPMI commands
+* [ ] recursive support (other custom commands in a custom command)
+* [ ] runtime argument support
 
 === Connection Monitor
 
+* [ ] Connection monitor
+* [ ] Web accessibility monitor
+
 === KVM
+
+* [ ] JViewer invocation
+* [ ] profile support
