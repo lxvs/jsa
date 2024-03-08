@@ -17,13 +17,13 @@ class IpmiTool:
     username: str | None = None
     password: str | None = None
     interface: str | None = None
-    dryrun: bool = False
+    dry_run: bool = False
 
     class ToolType(Enum):
         IPMITOOL_PATH = 'from IPMITOOL_PATH'
         BUNDLED = 'bundled'
         SHELL = 'from shell'
-        ARG = 'from arguemnt'
+        ARG = 'from argument'
         NONE = 'none'
 
     def __init__(
@@ -33,7 +33,7 @@ class IpmiTool:
         password: str | None = None,
         interface: str | None = None,
         tool_path: str | None = None,
-        dryrun: bool = False,
+        dry_run: bool = False,
     ) -> None:
         self.type = self.ToolType.NONE
         if tool_path is not None:
@@ -44,7 +44,7 @@ class IpmiTool:
         self.username = username
         self.password = password
         self.interface = interface
-        self.dryrun = dryrun
+        self.dry_run = dry_run
 
     def get_ipmitool(self) -> None:
         """
@@ -93,7 +93,7 @@ class IpmiTool:
         return subprocess.check_output([self.path, '-V'], encoding='utf-8')
 
     def run(self, args: list) -> int:
-        if self.dryrun:
+        if self.dry_run:
             print(' '.join([self.path] + args))
             return 0
 
@@ -191,7 +191,7 @@ def parse_args():
         help="Show help information of ipmitool",
     )
     parser.add_argument(
-        '--dryrun',
+        '--dry-run',
         action='store_true',
         help="Print command and arguments and exit.",
     )
@@ -211,7 +211,7 @@ def main() -> int:
         args.password,
         args.interface,
         args.ipmitool_path,
-        args.dryrun,
+        args.dry_run,
     )
     if tool.type is IpmiTool.ToolType.NONE:
         raise JsaError(f"ipmitool not found: {tool.path}")
