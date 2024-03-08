@@ -231,9 +231,16 @@ def main() -> int:
 
     return tool.send(args.arguments)
 
+def __suppress_traceback(exc_type, exc_val, traceback):
+    pass
+
 if __name__ == '__main__':
     try:
         sys.exit(main())
     except JsaError as error:
         print("error:", error, file=sys.stderr)
+    except KeyboardInterrupt:
+        if sys.excepthook is sys.__excepthook__:
+            sys.excepthook = __suppress_traceback
+        raise
     sys.exit(1)
