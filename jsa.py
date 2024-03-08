@@ -62,7 +62,6 @@ class IpmiTool:
             self.version = self.get_ipmitool_version()
             return
 
-        self.type = self.ToolType.NONE
         if os.environ.get('IPMITOOL_PATH') is not None:
             if os.access(os.environ['IPMITOOL_PATH'], os.X_OK):
                 self.type = self.ToolType.IPMITOOL_PATH
@@ -153,9 +152,8 @@ class InvalidIpmiTool(JsaError):
 class InvalidArgument(JsaError):
     pass
 
-def get_version() -> str:
+def get_version(tool: IpmiTool) -> str:
     version = f"jsa {__version__}"
-    tool = IpmiTool()
     if tool.type is not IpmiTool.ToolType.NONE:
         version += f", {tool.version} ({tool.type.value})"
     return version
@@ -165,8 +163,8 @@ def parse_args():
     parser.add_argument(
         '-V',
         '--version',
-        action='version',
-        version=f"{get_version()}",
+        action='store_true',
+        help="Print version and exit",
     )
     parser.add_argument(
         '-H',
@@ -220,11 +218,16 @@ def main() -> int:
         args.ipmitool_path,
         args.dry_run,
     )
-    if tool.type is IpmiTool.ToolType.NONE:
-        raise InvalidIpmiTool(f"ipmitool not found: {tool.path}")
 
     if args.ipmitool_help:
         return tool.run(['-h'])
+
+    if args.version:
+        print(get_version(tool))
+        return 0
+
+    if tool.type is IpmiTool.ToolType.NONE:
+        raise InvalidIpmiTool(f"ipmitool not found: {tool.path}")
 
     return tool.send(args.arguments)
 
