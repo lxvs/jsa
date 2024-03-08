@@ -55,9 +55,9 @@ class IpmiTool:
         """
         if self.type is self.ToolType.ARG:
             if not os.path.isfile(self.path):
-                raise JsaError(f"ipmitool not found: {self.path}")
+                raise InvalidIpmiTool(f"ipmitool not found: {self.path}")
             if not os.access(self.path, os.X_OK):
-                raise JsaError(f"ipmitool not executable: {self.path}")
+                raise InvalidIpmiTool(f"ipmitool not executable: {self.path}")
             self.version = self.get_ipmitool_version()
             return
 
@@ -116,7 +116,7 @@ class IpmiTool:
 
     def __process_and_validate_hostname(self) -> str:
         if self.hostname is None:
-            raise JsaError("hostname not specified")
+            raise InvalidArgument("hostname not specified")
 
         hostname = str(self.hostname)
 
@@ -129,7 +129,7 @@ class IpmiTool:
         pref_len = len(pref)
 
         if seg_len > 4 or seg_len + pref_len < 4:
-            raise JsaError("invalid IPv4 address")
+            raise InvalidArgument("invalid IPv4 address")
 
         slice_end = 4 - seg_len
         return '.'.join(pref[:slice_end] + segments)
@@ -144,6 +144,12 @@ class IpmiTool:
         return prefix.strip('.').split('.')
 
 class JsaError(Exception):
+    pass
+
+class InvalidIpmiTool(JsaError):
+    pass
+
+class InvalidArgument(JsaError):
     pass
 
 def get_version() -> str:
@@ -214,7 +220,7 @@ def main() -> int:
         args.dry_run,
     )
     if tool.type is IpmiTool.ToolType.NONE:
-        raise JsaError(f"ipmitool not found: {tool.path}")
+        raise InvalidIpmiTool(f"ipmitool not found: {tool.path}")
 
     if args.ipmitool_help:
         return tool.run(['-h'])
