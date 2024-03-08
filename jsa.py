@@ -202,7 +202,7 @@ def parse_args():
     )
     parser.add_argument(
         'arguments',
-        nargs='+',
+        nargs='*',
         help="arguments to be passed to ipmitool",
     )
     return parser.parse_args()
