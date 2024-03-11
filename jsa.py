@@ -16,7 +16,7 @@ def get_version(session: JsaSession) -> str:
         version += f", {session.version} ({session.type.value})"
     return version
 
-def __parse_args():
+def __parse_args() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         allow_abbrev=False,
         add_help=False,
@@ -78,18 +78,11 @@ def __parse_args():
         help="arguments of the command",
     )
 
-    args, cmd_args = parser.parse_known_args()
-    if args.help:
-        if args.command:
-            cmd_args += ['--help']
-        else:
-            parser.print_help()
-            sys.exit(0)
-
-    return args, cmd_args
+    return parser
 
 def main() -> int:
-    args, cmd_args = __parse_args()
+    parser = __parse_args()
+    args, cmd_args = parser.parse_known_args()
 
     session = JsaSession(
         args.hostname,
@@ -108,6 +101,11 @@ def main() -> int:
         print(get_version(session))
         return 0
 
+    if args.command is None:
+        parser.print_help()
+        sys.exit(1)
+    elif args.help:
+        return dispatch(session, args.command, ['--help'])
     return dispatch(session, args.command, args.arguments + cmd_args)
 
 def dispatch(session: JsaSession, cmd: str, cmd_args: list) -> int:
