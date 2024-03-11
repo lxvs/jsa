@@ -5,8 +5,11 @@ import subprocess
 
 from modules.session import JsaSession
 
+DEFAULT_SOL_OUTPUT = 'sol-%(hostname)-%Y%m%d-%H%M%S.log'
+
 def autosol(session: JsaSession, argv: list) -> int:
     args = __autosol_parseargs(argv)
+    output = parse_output(session, args.output)
     if args.deactivate:
         session.send(['sol', 'deactivate'], stderr=subprocess.DEVNULL, check=False)
     if not args.off:
@@ -18,7 +21,7 @@ def autosol(session: JsaSession, argv: list) -> int:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
-    with open('sol.log', 'w', encoding='utf-8', errors='ignore') as sol_log:
+    with open(output, 'w', encoding='utf-8', errors='ignore') as sol_log:
         for line in proc.stdout:
             line_str = line.decode(encoding='utf-8', errors='ignore')
             sys.stdout.write(line_str)
@@ -47,4 +50,28 @@ def __autosol_parseargs(argv: list):
         action='store_false',
         help="Do not deactivate previous possibly activated SOL session",
     )
+    parser.add_argument(
+        '--log',
+        action='store_true',
+        default=True,
+        help="Save SOL output to file (default); see also --output",
+    )
+    parser.add_argument(
+        '--no-log',
+        dest='log',
+        action='store_false',
+        help="Do not save SOL output to file; this ignores --output",
+    )
+    parser.add_argument(
+        '-o',
+        '--output',
+        help=f"path of the log file for the SOL output (default: {DEFAULT_SOL_OUTPUT})",
+        default=DEFAULT_SOL_OUTPUT,
+    )
     return parser.parse_args(argv)
+
+def parse_output(session: JsaSession, output: str) -> str:
+    return time.strftime(
+        output.replace('%(hostname)', session.real_hostname),
+        time.localtime(time.time())
+    )
