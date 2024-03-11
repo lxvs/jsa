@@ -116,16 +116,11 @@ def dispatch(session: JsaSession, cmd: str, cmd_args: list) -> int:
         return cmd_instance(session, cmd_args)
     return session.send([cmd] + cmd_args)
 
-def __suppress_traceback(exc_type, exc_val, traceback):
-    pass
-
 if __name__ == '__main__':
     try:
         sys.exit(main())
     except JsaExceptions.JsaError as error:
         print("error:", error, file=sys.stderr)
     except KeyboardInterrupt:
-        if sys.excepthook is sys.__excepthook__:
-            sys.excepthook = __suppress_traceback
-        raise
+        print("KeyboardInterrupt", file=sys.stderr)
     sys.exit(1)
