@@ -12,8 +12,8 @@ class JsaSession:
     path: Path | None = None
     version: str | None = None
     type: "JsaSession.ToolType" = None
+    raw_hostname: str | None = None
     hostname: str | None = None
-    real_hostname: str | None = None
     username: str | None = None
     password: str | None = None
     interface: str | None = None
@@ -40,8 +40,8 @@ class JsaSession:
             self.path = Path(tool_path)
             self.type = self.ToolType.ARG
         self.get_ipmitool()
-        self.hostname = hostname
-        self.real_hostname = self.__process_and_validate_hostname()
+        self.raw_hostname = hostname
+        self.hostname = self.__process_and_validate_hostname()
         self.username = username
         self.password = password
         self.interface = interface
@@ -121,17 +121,17 @@ class JsaSession:
         return [str(self.path)] + self.get_profile_args() + args
 
     def get_profile_args(self) -> list:
-        return ['-H', self.real_hostname, '-U', self.username, '-P', self.password, '-I', self.interface]
+        return ['-H', self.hostname, '-U', self.username, '-P', self.password, '-I', self.interface]
 
     def validate_ipmitool(self) -> None:
         if self.type is JsaSession.ToolType.NONE:
             raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found: {self.path}")
 
     def __process_and_validate_hostname(self) -> str:
-        if self.hostname is None:
+        if self.raw_hostname is None:
             raise JsaExceptions.InvalidArgument("hostname not specified")
 
-        hostname = str(self.hostname)
+        hostname = str(self.raw_hostname)
 
         if not hostname.replace('.', '').isdigit():
             return hostname

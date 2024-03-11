@@ -72,6 +72,6 @@ def __autosol_parseargs(argv: list):
 
 def parse_output(session: JsaSession, output: str) -> str:
     return time.strftime(
-        output.replace('%(hostname)', session.real_hostname),
+        output.replace('%(hostname)', session.hostname),
         time.localtime(time.time())
     )
