@@ -5,10 +5,11 @@ import subprocess
 
 from modules.session import JsaSession
 
-DEFAULT_SOL_OUTPUT = 'sol-%(hostname)-%Y%m%d-%H%M%S.log'
+DEFAULT_SOL_OUTPUT = 'autosol-$(hostname)-%%Y%%m%%d-%%H%%M%%S.log'
 
 def autosol(session: JsaSession, argv: list) -> int:
     args = __autosol_parseargs(argv)
+    session.validate()
     output = parse_output(session, args.output)
     if args.deactivate:
         session.send(['sol', 'deactivate'], stderr=subprocess.DEVNULL, check=False)
@@ -71,13 +72,15 @@ def __autosol_parseargs(argv: list):
     parser.add_argument(
         '-o',
         '--output',
-        help=f"path of the log file for the SOL output (default: {DEFAULT_SOL_OUTPUT})",
-        default=DEFAULT_SOL_OUTPUT,
+        help="path of the log file for the SOL output. " \
+            + "$(hostname) will be replaced to actual hostname. " \
+            + "Date and time format is the same with strftime. " \
+            + f"(default: {DEFAULT_SOL_OUTPUT})"
     )
     return parser.parse_args(argv)
 
-def parse_output(session: JsaSession, output: str) -> str:
-    return time.strftime(
-        output.replace('%(hostname)', session.hostname),
-        time.localtime(time.time())
-    )
+def parse_output(session: JsaSession, output: str | None = None) -> str:
+    output = output or DEFAULT_SOL_OUTPUT.replace('%%', '%')
+    output = output.replace('$(hostname)', session.hostname)
+    local_time = time.localtime(time.time())
+    return time.strftime(output, local_time)

@@ -18,6 +18,7 @@ class JsaSession:
     password: str | None = None
     interface: str | None = None
     dry_run: bool = False
+    valid: bool = False
 
     class ToolType(Enum):
         IPMITOOL_PATH = 'from IPMITOOL_PATH'
@@ -41,7 +42,7 @@ class JsaSession:
             self.type = self.ToolType.ARG
         self.get_ipmitool()
         self.raw_hostname = hostname
-        self.hostname = self.__process_and_validate_hostname()
+        self.hostname = self.__parse_hostname()
         self.username = username
         self.password = password
         self.interface = interface
@@ -100,7 +101,7 @@ class JsaSession:
             stderr = None,
             check = True,
     ) -> int:
-        self.validate_ipmitool()
+        self.validate()
         full_args = self.construct_full_ipmi_args(args)
         if self.dry_run:
             print(' '.join(full_args))
@@ -123,13 +124,18 @@ class JsaSession:
     def get_profile_args(self) -> list:
         return ['-H', self.hostname, '-U', self.username, '-P', self.password, '-I', self.interface]
 
-    def validate_ipmitool(self) -> None:
+    def validate(self) -> None:
+        if self.valid:
+            return
         if self.type is JsaSession.ToolType.NONE:
             raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found: {self.path}")
-
-    def __process_and_validate_hostname(self) -> str:
-        if self.raw_hostname is None:
+        if self.hostname is None:
             raise JsaExceptions.InvalidArgument("hostname not specified")
+        self.valid = True
+
+    def __parse_hostname(self) -> str | None:
+        if self.raw_hostname is None:
+            return None
 
         hostname = str(self.raw_hostname)
 
