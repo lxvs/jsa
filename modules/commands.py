@@ -1,7 +1,9 @@
+import os
 import sys
 import time
 import argparse
 import subprocess
+from pathlib import Path
 
 from modules.session import JsaSession
 
@@ -72,7 +74,7 @@ def __autosol_parseargs(argv: list):
     parser.add_argument(
         '-o',
         '--output',
-        help="path of the log file for the SOL output. " \
+        help="path of the log file for the SOL output (can be a directory). " \
             + "$(hostname) will be replaced to actual hostname. " \
             + "Date and time format is the same with strftime. " \
             + f"(default: {DEFAULT_SOL_OUTPUT})"
@@ -80,7 +82,17 @@ def __autosol_parseargs(argv: list):
     return parser.parse_args(argv)
 
 def parse_output(session: JsaSession, output: str | None = None) -> str:
-    output = output or DEFAULT_SOL_OUTPUT.replace('%%', '%')
+    default = DEFAULT_SOL_OUTPUT.replace('%%', '%')
+    if output:
+        if Path(output).is_dir():
+            output = str(Path(output).joinpath(default))
+        elif output.endswith(os.sep) or (os.altsep and output.endswith(os.altsep)):
+            Path(output).mkdir(parents=True)
+            output = str(Path(output).joinpath(default))
+        elif not Path(output).parent.exists():
+            Path(output).parent.mkdir(parents=True)
+    else:
+        output = default
     output = output.replace('$(hostname)', session.hostname)
     local_time = time.localtime(time.time())
     return time.strftime(output, local_time)
