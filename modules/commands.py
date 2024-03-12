@@ -22,10 +22,15 @@ def autosol(session: JsaSession, argv: list) -> int:
         stderr=subprocess.STDOUT,
     )
     with open(output, 'w', encoding='utf-8', errors='ignore') as sol_log:
-        for line in proc.stdout:
-            line_str = line.decode(encoding='utf-8', errors='ignore')
-            sys.stdout.write(line_str)
-            sol_log.write(line_str)
+        while True:
+            byte = proc.stdout.read(1).decode(encoding='utf-8', errors='ignore')
+            if byte:
+                sys.stdout.write(byte)
+                sys.stdout.flush()
+                sol_log.write(byte)
+                sol_log.flush()
+            else:
+                break
     return proc.wait()
 
 def __autosol_parseargs(argv: list):
