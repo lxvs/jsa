@@ -23,11 +23,12 @@ def autosol(session: JsaSession, argv: list) -> int:
     )
     with open(output, 'w', encoding='utf-8', errors='ignore') as sol_log:
         while True:
-            byte = proc.stdout.read(1).decode(encoding='utf-8', errors='ignore')
+            byte = proc.stdout.read(1)
             if byte:
-                sys.stdout.write(byte)
+                char = byte.decode(encoding='utf-8', errors='ignore')
+                sys.stdout.write(char)
                 sys.stdout.flush()
-                sol_log.write(byte)
+                sol_log.write(char)
                 sol_log.flush()
             else:
                 break
