@@ -7,18 +7,21 @@ from pathlib import Path
 
 from modules.session import JsaSession
 
+DEFAULT_SOL_SLEEP = 10
 DEFAULT_SOL_OUTPUT = 'autosol-$(hostname)-%%Y%%m%%d-%%H%%M%%S.log'
 
 def autosol(session: JsaSession, argv: list) -> int:
     args = __autosol_parseargs(argv)
     session.validate()
     output = parse_output(session, args.output)
-    if args.deactivate:
-        session.send(['sol', 'deactivate'], stderr=subprocess.DEVNULL, check=False)
-    if not args.off:
-        session.send(['chassis', 'power', 'off'], check=False)
-        time.sleep(10)
-    session.send(['chassis', 'power', 'on'], check=False)
+    if not args.activate_only:
+        if args.deactivate:
+            session.send(['sol', 'deactivate'], stderr=subprocess.DEVNULL, check=False)
+        if not args.off:
+            session.send(['chassis', 'power', 'off'], check=False)
+            if args.sleep > 0:
+                time.sleep(args.sleep)
+        session.send(['chassis', 'power', 'on'], check=False)
     proc = subprocess.Popen(
         session.construct_full_ipmi_args(['sol', 'activate']),
         stdout=subprocess.PIPE,
@@ -41,6 +44,18 @@ def __autosol_parseargs(argv: list):
     parser = argparse.ArgumentParser(
         allow_abbrev=False,
         description="Deactivate SOL session, power off, sleep 10 seconds, power on, and activate SOL.",
+    )
+    parser.add_argument(
+        '-a',
+        '--activate-only',
+        action='store_true',
+        help="Only activate SOL",
+    )
+    parser.add_argument(
+        '--sleep',
+        type=int,
+        help=f"time to sleep (default {DEFAULT_SOL_SLEEP})",
+        default=DEFAULT_SOL_SLEEP,
     )
     parser.add_argument(
         '--off',
