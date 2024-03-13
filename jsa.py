@@ -6,9 +6,9 @@ import sys
 import argparse
 import subprocess
 
-import modules.commands as JsaCommands
 import modules.exceptions as JsaExceptions
 from modules.session import JsaSession
+from modules.commands._dispatcher import JsaCommandDispatcher
 
 def get_version() -> str:
     version = f"jsa {__version__}"
@@ -107,9 +107,9 @@ def main() -> int:
     return dispatch(session, args.command, args.arguments + cmd_args)
 
 def dispatch(session: JsaSession, cmd: str, cmd_args: list) -> int:
-    if hasattr(JsaCommands, cmd):
-        cmd_instance = getattr(JsaCommands, cmd)
-        return cmd_instance(session, cmd_args)
+    cmd_instance = JsaCommandDispatcher.get_instance(cmd)
+    if cmd_instance:
+        return cmd_instance.exec(session, cmd_args)
     return session.send([cmd] + cmd_args)
 
 if __name__ == '__main__':
