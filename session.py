@@ -71,7 +71,7 @@ class JsaSession:
         else:
             bundled_tool = None
 
-        if bundled_tool.is_file() and os.access(bundled_tool, os.X_OK):
+        if bundled_tool and bundled_tool.is_file() and os.access(bundled_tool, os.X_OK):
             cls.type = cls.ToolType.BUNDLED
             cls.path = bundled_tool
             cls.version = cls.__get_ipmitool_version()
