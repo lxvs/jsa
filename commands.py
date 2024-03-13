@@ -67,9 +67,9 @@ class Autosol(JsaCommand):
         )
         parser.add_argument(
             '--sleep',
-            type=int,
+            type=float,
             help="time to sleep (default %(default)s)",
-            default=10,
+            default=10.0,
         )
         parser.add_argument(
             '--off',
