@@ -6,7 +6,20 @@ import subprocess
 from pathlib import Path
 
 from session import JsaSession
-from commands._command import JsaCommand
+
+class JsaCommand:
+    def exec(self, session: JsaSession, argv: list) -> int:
+        raise NotImplementedError("exec not implemented")
+
+class JsaCommandDispatcher:
+    @staticmethod
+    def get_instance(name: str) -> JsaCommand:
+        if name == 'autosol':
+            return Autosol()
+        if name == 'sleep':
+            return Sleep()
+        else:
+            return None
 
 class Autosol(JsaCommand):
     DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
@@ -110,3 +123,22 @@ class Autosol(JsaCommand):
         output = output.replace('$(hostname)', session.hostname)
         local_time = time.localtime(time.time())
         return time.strftime(output, local_time)
+
+class Sleep(JsaCommand):
+    def exec(self, session: JsaSession, argv: list) -> int:
+        args = self.__parseargs(argv)
+        time.sleep(args.seconds)
+
+    def __parseargs(self, argv: list):
+        parser = argparse.ArgumentParser(
+            allow_abbrev=False,
+            description="Sleep a given number of seconds.",
+        )
+        parser.add_argument(
+            "seconds",
+            nargs='?',
+            type=float,
+            default=1.0,
+            help="The number of seconds to sleep (default: %(default)s)",
+        )
+        return parser.parse_args(argv)
