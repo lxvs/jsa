@@ -1,13 +1,12 @@
 from commands._command import JsaCommand
-from commands.autosol import Autosol
-from commands.sleep import Sleep
+from commands import *
 
 class JsaCommandDispatcher:
     @staticmethod
     def get_instance(name: str) -> JsaCommand:
         if name == 'autosol':
-            return Autosol()
+            return autosol.Autosol()
         if name == 'sleep':
-            return Sleep()
+            return sleep.Sleep()
         else:
             return None
