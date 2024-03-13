@@ -1,4 +1,4 @@
-from modules.session import JsaSession
+from session import JsaSession
 
 class JsaCommand:
     def exec(self, session: JsaSession, argv: list) -> int:

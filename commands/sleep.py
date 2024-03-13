@@ -1,8 +1,8 @@
 import time
 import argparse
 
-from modules.session import JsaSession
-from modules.commands._command import JsaCommand
+from session import JsaSession
+from commands._command import JsaCommand
 
 class Sleep(JsaCommand):
     def exec(self, session: JsaSession, argv: list) -> int:

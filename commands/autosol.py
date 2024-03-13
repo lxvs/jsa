@@ -5,8 +5,8 @@ import argparse
 import subprocess
 from pathlib import Path
 
-from modules.session import JsaSession
-from modules.commands._command import JsaCommand
+from session import JsaSession
+from commands._command import JsaCommand
 
 class Autosol(JsaCommand):
     DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'

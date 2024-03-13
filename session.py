@@ -5,8 +5,7 @@ import subprocess
 from enum import Enum
 from pathlib import Path
 
-import modules.exceptions as JsaExceptions
-from definitions import ROOT_PATH
+import exceptions as JsaExceptions
 
 class JsaSession:
     path: Path | None = None
@@ -64,7 +63,7 @@ class JsaSession:
                 cls.version = cls.__get_ipmitool_version()
                 return
 
-        bundled_tool = ROOT_PATH / 'ipmitool'
+        bundled_tool = Path(__file__).resolve().parent / 'ipmitool'
         if sys.platform.startswith('linux'):
             bundled_tool = bundled_tool / 'ipmitool'
         elif sys.platform.startswith('win'):

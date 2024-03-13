@@ -1,6 +1,6 @@
-from modules.commands._command import JsaCommand
-from modules.commands.autosol import Autosol
-from modules.commands.sleep import Sleep
+from commands._command import JsaCommand
+from commands.autosol import Autosol
+from commands.sleep import Sleep
 
 class JsaCommandDispatcher:
     @staticmethod

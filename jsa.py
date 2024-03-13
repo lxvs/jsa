@@ -6,9 +6,9 @@ import sys
 import argparse
 import subprocess
 
-import modules.exceptions as JsaExceptions
-from modules.session import JsaSession
-from modules.commands._dispatcher import JsaCommandDispatcher
+import exceptions as JsaExceptions
+from session import JsaSession
+from commands._dispatcher import JsaCommandDispatcher
 
 def get_version() -> str:
     version = f"jsa {__version__}"
