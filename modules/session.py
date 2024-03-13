@@ -12,13 +12,6 @@ class JsaSession:
     path: Path | None = None
     version: str | None = None
     type: "JsaSession.ToolType" = None
-    raw_hostname: str | None = None
-    hostname: str | None = None
-    username: str | None = None
-    password: str | None = None
-    interface: str | None = None
-    dry_run: bool = False
-    valid: bool = False
 
     class ToolType(Enum):
         IPMITOOL_PATH = 'from IPMITOOL_PATH'
@@ -36,38 +29,41 @@ class JsaSession:
         tool_path: str | None = None,
         dry_run: bool = False,
     ) -> None:
-        self.type = self.ToolType.NONE
-        if tool_path is not None:
-            self.path = Path(tool_path)
-            self.type = self.ToolType.ARG
-        self.get_ipmitool()
+        if self.type is None:
+            if tool_path is not None:
+                self.path = Path(tool_path)
+                self.type = self.ToolType.ARG
+            self.get_ipmitool()
         self.raw_hostname = hostname
         self.hostname = self.__parse_hostname()
         self.username = username
         self.password = password
         self.interface = interface
         self.dry_run = dry_run
+        self.valid = False
 
-    def get_ipmitool(self) -> None:
+    @classmethod
+    def get_ipmitool(cls) -> None:
         """
         Get the first executable ipmitool in the following order:
+
             1. from environment variable IPMITOOL_PATH
             2. bundled ipmitool in ipmitool/
             3. executable ipmitool from shell
         """
-        if self.type is self.ToolType.ARG:
-            if not self.path.is_file():
-                raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found: {self.path}")
-            if not os.access(self.path, os.X_OK):
-                raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {self.path}")
-            self.version = self.get_ipmitool_version()
+        if cls.type is cls.ToolType.ARG:
+            if not cls.path.is_file():
+                raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found: {cls.path}")
+            if not os.access(cls.path, os.X_OK):
+                raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {cls.path}")
+            cls.version = cls.__get_ipmitool_version()
             return
 
         if os.environ.get('IPMITOOL_PATH') is not None:
             if os.access(os.environ['IPMITOOL_PATH'], os.X_OK):
-                self.type = self.ToolType.IPMITOOL_PATH
-                self.path = Path(os.environ['IPMITOOL_PATH'])
-                self.version = self.get_ipmitool_version()
+                cls.type = cls.ToolType.IPMITOOL_PATH
+                cls.path = Path(os.environ['IPMITOOL_PATH'])
+                cls.version = cls.__get_ipmitool_version()
                 return
 
         bundled_tool = ROOT_PATH / 'ipmitool'
@@ -79,19 +75,22 @@ class JsaSession:
             bundled_tool = None
 
         if bundled_tool.is_file() and os.access(bundled_tool, os.X_OK):
-            self.type = self.ToolType.BUNDLED
-            self.path = bundled_tool
-            self.version = self.get_ipmitool_version()
+            cls.type = cls.ToolType.BUNDLED
+            cls.path = bundled_tool
+            cls.version = cls.__get_ipmitool_version()
             return
 
         which = shutil.which('ipmitool')
         if which is not None:
-            self.type = self.ToolType.SHELL
-            self.path = Path(which)
-            self.version = self.get_ipmitool_version()
+            cls.type = cls.ToolType.SHELL
+            cls.path = Path(which)
+            cls.version = cls.__get_ipmitool_version()
 
-    def get_ipmitool_version(self) -> str:
-        return subprocess.check_output([self.path, '-V'], encoding='utf-8').strip()
+        cls.type = cls.ToolType.NONE
+
+    @classmethod
+    def __get_ipmitool_version(cls) -> str:
+        return subprocess.check_output([cls.path, '-V'], encoding='utf-8').strip()
 
     def send(
             self,

@@ -10,10 +10,11 @@ import modules.commands as JsaCommands
 import modules.exceptions as JsaExceptions
 from modules.session import JsaSession
 
-def get_version(session: JsaSession) -> str:
+def get_version() -> str:
     version = f"jsa {__version__}"
-    if session.type is not JsaSession.ToolType.NONE:
-        version += f", {session.version} ({session.type.value})"
+    JsaSession.get_ipmitool()
+    if JsaSession.type is not JsaSession.ToolType.NONE:
+        version += f", {JsaSession.version} ({JsaSession.type.value})"
     return version
 
 def __parse_args() -> argparse.ArgumentParser:
@@ -30,8 +31,8 @@ def __parse_args() -> argparse.ArgumentParser:
     parser.add_argument(
         '-V',
         '--version',
-        action='store_true',
-        help="Print version and exit",
+        action='version',
+        version=get_version(),
     )
     parser.add_argument(
         '-H',
@@ -94,11 +95,8 @@ def main() -> int:
     )
 
     if args.ipmitool_help:
+        session.validate()
         subprocess.run([session.path, '-h'], check=False)
-        return 0
-
-    if args.version:
-        print(get_version(session))
         return 0
 
     if args.command is None:
