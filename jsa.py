@@ -95,7 +95,7 @@ def main() -> int:
     )
 
     if args.ipmitool_help:
-        session.validate()
+        session.validate_tool()
         subprocess.run([session.path, '-h'], check=False)
         return 0
 

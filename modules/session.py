@@ -12,6 +12,7 @@ class JsaSession:
     path: Path | None = None
     version: str | None = None
     type: "JsaSession.ToolType" = None
+    tool_valid: bool = False
 
     class ToolType(Enum):
         IPMITOOL_PATH = 'from IPMITOOL_PATH'
@@ -40,7 +41,7 @@ class JsaSession:
         self.password = password
         self.interface = interface
         self.dry_run = dry_run
-        self.valid = False
+        self.session_valid = False
 
     @classmethod
     def get_ipmitool(cls) -> None:
@@ -52,10 +53,7 @@ class JsaSession:
             3. executable ipmitool from shell
         """
         if cls.type is cls.ToolType.ARG:
-            if not cls.path.is_file():
-                raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found: {cls.path}")
-            if not os.access(cls.path, os.X_OK):
-                raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {cls.path}")
+            cls.validate_tool()
             cls.version = cls.__get_ipmitool_version()
             return
 
@@ -124,13 +122,27 @@ class JsaSession:
         return ['-H', self.hostname, '-U', self.username, '-P', self.password, '-I', self.interface]
 
     def validate(self) -> None:
-        if self.valid:
+        self.validate_tool()
+        self.validate_session()
+
+    @classmethod
+    def validate_tool(cls) -> None:
+        if cls.tool_valid:
             return
-        if self.type is JsaSession.ToolType.NONE:
-            raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found: {self.path}")
+        if cls.type is JsaSession.ToolType.NONE:
+            raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found")
+        if not cls.path.is_file():
+            raise JsaExceptions.InvalidIpmiTool(f"invalid ipmitool: {cls.path}")
+        if not os.access(cls.path, os.X_OK):
+            raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {cls.path}")
+        cls.tool_valid = True
+
+    def validate_session(self) -> None:
+        if self.session_valid:
+            return
         if self.hostname is None:
             raise JsaExceptions.InvalidArgument("hostname not specified")
-        self.valid = True
+        self.session_valid = True
 
     def __parse_hostname(self) -> str | None:
         if self.raw_hostname is None:
