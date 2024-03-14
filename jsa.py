@@ -9,6 +9,7 @@ import subprocess
 import exceptions as JsaExceptions
 from session import JsaSession
 from commands import JsaCommandDispatcher
+from script import JsaScriptDispatcher
 
 def get_version() -> str:
     version = f"jsa {__version__}"
@@ -108,6 +109,9 @@ def main() -> int:
 
 def dispatch(session: JsaSession, cmd: str, cmd_args: list) -> int:
     cmd_instance = JsaCommandDispatcher.get_instance(cmd)
+    if cmd_instance:
+        return cmd_instance.exec(session, cmd_args)
+    cmd_instance = JsaScriptDispatcher.get_instance(cmd)
     if cmd_instance:
         return cmd_instance.exec(session, cmd_args)
     return session.send([cmd] + cmd_args)

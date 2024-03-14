@@ -6,3 +6,6 @@ class InvalidIpmiTool(JsaError):
 
 class InvalidArgument(JsaError):
     pass
+
+class SelfRecursiveError(JsaError):
+    pass
