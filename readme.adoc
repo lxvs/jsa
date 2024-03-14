@@ -44,10 +44,10 @@ toc::[]
 
 == Removed Features
 
-* [.line-through]#monitor and loop built-in command#
-* [.line-through]#connection monitor#
-* [.line-through]#KVM invocation#
-* [.line-through]#color support#
+* monitor and loop built-in command
+* connection monitor
+* KVM invocation
+* color support
 
 [#jsa-ip-pref]
 == Introduction to JSA_IP_PREF
