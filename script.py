@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+import definitions
 from session import JsaSession
 from commands import JsaCommandDispatcher
 import exceptions as JsaExceptions
@@ -45,7 +46,7 @@ class JsaScript:
 class JsaScriptDispatcher:
     dir: str = 'scripts'
     ext: str = 'txt'
-    path: Path = Path(__file__).resolve().parent / dir
+    path: Path = definitions.ROOT_PATH.with_name(dir)
 
     @classmethod
     def get_instance(cls, name: str) -> JsaScript:
