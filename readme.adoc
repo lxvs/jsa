@@ -1,4 +1,4 @@
-= JSA User Manual
+= JSA Development Roadmap
 :toc:
 :toc-placement!:
 
@@ -10,31 +10,73 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+JSA is being implemented using Python.
+
 toc::[]
 
-== Features
+== New Features
+
+* [ ] profile support (a hostname, a username, a password, and a interface as a profile)
+* [ ] shortcut redfish commands
+
+== Original Features
 
 === Shortcut IPMI Commands
 
-* [x] JSA_IP_PREF Support
-* [ ] profile support (a hostname, a username, and a password as a profile)
+* [x] shortcut IPv4 address support (`<<jsa-ip-pref, JSA_IP_PREF>>`)
+* [ ] customize default hostname, password, and interface
+* [x] *[NEW]* dry run support (`--dry-run`)
 
-=== Shortcut Redfish Commands
+=== Script (Original Custom Command)
 
-* [ ] TBD
+* [x] script feature
+* [x] recursive support (call other scripts in a script)
+* [x] *[NEW]* self-recursive detection
+* [x] *[NEW]* prefix a line with `!` to ignore its return status
+* [x] *[NEW]* `sleep` becomes a built-in command (originally only available in a custom command)
+* [ ] *[NEW]* runtime argument support
 
-=== Custom IPMI Commands
+=== Autosol Built-in Command (Original Sol)
 
-* [ ] custom IPMI commands
-* [ ] recursive support (other custom commands in a custom command)
-* [ ] runtime argument support
+* [x] auto name and save log files
+* [x] *[NEW]* output in console as well as in the log file
+* [x] *[NEW]* power off, sleep, and power on before activating SOL, controllable with command line arguments
 
-=== Connection Monitor
+== Removed Features
 
-* [ ] Connection monitor
-* [ ] Web accessibility monitor
+* [.line-through]#monitor and loop built-in command#
+* [.line-through]#connection monitor#
+* [.line-through]#KVM invocation#
+* [.line-through]#color support#
 
-=== KVM
+[#jsa-ip-pref]
+== Introduction to JSA_IP_PREF
 
-* [ ] JViewer invocation
-* [ ] profile support
+A hostname can be either a domain name (www.example.com) or an IP address.  When
+use an IPv4 address as hostname, you can just specify a part of full IPv4
+address after set the environment variable `JSA_IP_PREF` properly.
+
+For example:
+
+[cols="1,1,1"]
+|===
+| Input | JSA_IP_PREF | Result IPv4
+
+| 7
+| 192.168.0
+| 192.168.0.7
+
+| 7.7 
+| 192.168.0
+| 192.168.7.7
+
+| 7.7.7.7
+| 192.168.0
+| 7.7.7.7
+
+| 7.7
+| 192
+| (Invalid)
+|===
+
+The input can be 1~4 segments.
