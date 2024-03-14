@@ -30,10 +30,12 @@ class JsaSession:
         tool_path: str | None = None,
         dry_run: bool = False,
     ) -> None:
-        if self.type is None:
-            if tool_path is not None:
-                self.path = Path(tool_path)
-                self.type = self.ToolType.ARG
+        if tool_path:
+            self.path = Path(tool_path)
+            self.type = JsaSession.ToolType.ARG
+            self.validate_tool()
+            self.version = self.__get_ipmitool_version()
+        if not self.type:
             self.get_ipmitool()
         self.raw_hostname = hostname
         self.hostname = self.__parse_hostname()
@@ -43,8 +45,7 @@ class JsaSession:
         self.dry_run = dry_run
         self.session_valid = False
 
-    @classmethod
-    def get_ipmitool(cls) -> None:
+    def get_ipmitool(self) -> None:
         """
         Get the first executable ipmitool in the following order:
 
@@ -52,16 +53,11 @@ class JsaSession:
             2. bundled ipmitool in ipmitool/
             3. executable ipmitool from shell
         """
-        if cls.type is cls.ToolType.ARG:
-            cls.validate_tool()
-            cls.version = cls.__get_ipmitool_version()
-            return
-
         if os.environ.get('IPMITOOL_PATH') is not None:
             if os.access(os.environ['IPMITOOL_PATH'], os.X_OK):
-                cls.type = cls.ToolType.IPMITOOL_PATH
-                cls.path = Path(os.environ['IPMITOOL_PATH'])
-                cls.version = cls.__get_ipmitool_version()
+                self.type = JsaSession.ToolType.IPMITOOL_PATH
+                self.path = Path(os.environ['IPMITOOL_PATH'])
+                self.version = self.__get_ipmitool_version()
                 return
 
         bundled_tool = definitions.ROOT_PATH.with_name('ipmitool')
@@ -73,22 +69,21 @@ class JsaSession:
             bundled_tool = None
 
         if bundled_tool and bundled_tool.is_file() and os.access(bundled_tool, os.X_OK):
-            cls.type = cls.ToolType.BUNDLED
-            cls.path = bundled_tool
-            cls.version = cls.__get_ipmitool_version()
+            self.type = JsaSession.ToolType.BUNDLED
+            self.path = bundled_tool
+            self.version = self.__get_ipmitool_version()
             return
 
         which = shutil.which('ipmitool')
         if which is not None:
-            cls.type = cls.ToolType.SHELL
-            cls.path = Path(which)
-            cls.version = cls.__get_ipmitool_version()
+            self.type = JsaSession.ToolType.SHELL
+            self.path = Path(which)
+            self.version = self.__get_ipmitool_version()
 
-        cls.type = cls.ToolType.NONE
+        self.type = JsaSession.ToolType.NONE
 
-    @classmethod
-    def __get_ipmitool_version(cls) -> str:
-        return subprocess.check_output([cls.path, '-V'], encoding='utf-8').strip()
+    def __get_ipmitool_version(self) -> str:
+        return subprocess.check_output([self.path, '-V'], encoding='utf-8').strip()
 
     def send(
             self,
@@ -125,17 +120,16 @@ class JsaSession:
         self.validate_tool()
         self.validate_session()
 
-    @classmethod
-    def validate_tool(cls) -> None:
-        if cls.tool_valid:
+    def validate_tool(self) -> None:
+        if self.tool_valid:
             return
-        if cls.type is JsaSession.ToolType.NONE:
+        if self.type is JsaSession.ToolType.NONE:
             raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found")
-        if not cls.path.is_file():
-            raise JsaExceptions.InvalidIpmiTool(f"invalid ipmitool: {cls.path}")
-        if not os.access(cls.path, os.X_OK):
-            raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {cls.path}")
-        cls.tool_valid = True
+        if not self.path.is_file():
+            raise JsaExceptions.InvalidIpmiTool(f"invalid ipmitool: {self.path}")
+        if not os.access(self.path, os.X_OK):
+            raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {self.path}")
+        self.tool_valid = True
 
     def validate_session(self) -> None:
         if self.session_valid:

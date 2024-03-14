@@ -11,11 +11,10 @@ from session import JsaSession
 from commands import JsaCommandDispatcher
 from script import JsaScriptDispatcher
 
-def get_version() -> str:
+def get_version(session: JsaSession) -> str:
     version = f"jsa {__version__}"
-    JsaSession.get_ipmitool()
-    if JsaSession.type is not JsaSession.ToolType.NONE:
-        version += f", {JsaSession.version} ({JsaSession.type.value})"
+    if session.type is not JsaSession.ToolType.NONE:
+        version += f", {session.version} ({session.type.value})"
     return version
 
 def __parse_args() -> argparse.ArgumentParser:
@@ -32,8 +31,7 @@ def __parse_args() -> argparse.ArgumentParser:
     parser.add_argument(
         '-V',
         '--version',
-        action='version',
-        version=get_version(),
+        action='store_true',
     )
     parser.add_argument(
         '-H',
@@ -95,6 +93,10 @@ def main() -> int:
         args.dry_run,
     )
 
+    if args.version:
+        print(get_version(session))
+        return 0
+
     if args.ipmitool_help:
         session.validate_tool()
         subprocess.run([session.path, '-h'], check=False)
@@ -102,7 +104,7 @@ def main() -> int:
 
     if args.command is None:
         parser.print_help()
-        sys.exit(1)
+        return 1
     elif args.help:
         return dispatch(session, args.command, ['--help'])
     return dispatch(session, args.command, args.arguments + cmd_args)
