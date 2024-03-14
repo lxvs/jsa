@@ -8,7 +8,7 @@ from pathlib import Path
 from session import JsaSession
 
 class JsaCommand:
-    def exec(self, session: JsaSession, argv: list) -> int:
+    def exec(self, session: JsaSession, argv: list | None = None) -> int:
         raise NotImplementedError("exec not implemented")
 
 class JsaCommandDispatcher:
@@ -24,7 +24,8 @@ class JsaCommandDispatcher:
 class Autosol(JsaCommand):
     DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
 
-    def exec(self, session: JsaSession, argv: list) -> int:
+    def exec(self, session: JsaSession, argv: list | None = None) -> int:
+        argv = argv or []
         args = self.__parseargs(argv)
         session.validate()
         output = self.__parse_output(session, args.output)
@@ -125,7 +126,8 @@ class Autosol(JsaCommand):
         return time.strftime(output, local_time)
 
 class Sleep(JsaCommand):
-    def exec(self, session: JsaSession, argv: list) -> int:
+    def exec(self, session: JsaSession, argv: list | None = None) -> int:
+        argv = argv or []
         args = self.__parseargs(argv)
         time.sleep(args.seconds)
 
