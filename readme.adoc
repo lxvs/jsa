@@ -27,7 +27,7 @@ toc::[]
 * [ ] customize default hostname, password, and interface
 * [x] *[NEW]* dry run support (`--dry-run`)
 
-=== Script (Original Custom Command)
+=== Script (Originally Custom Command)
 
 * [x] script feature
 * [x] recursive support (call other scripts in a script)
@@ -36,7 +36,7 @@ toc::[]
 * [x] *[NEW]* `sleep` becomes a built-in command (originally only available in a custom command)
 * [ ] *[NEW]* runtime argument support
 
-=== Autosol Built-in Command (Original Sol)
+=== Autosol Built-in Command (Originally Sol)
 
 * [x] auto name and save log files
 * [x] *[NEW]* output in console as well as in the log file
