@@ -19,8 +19,12 @@ class JsaScript:
                     striped = line.strip()
                     if not striped or striped[0] == '#':
                         continue
+                    force = False
+                    if striped[0] == '!':
+                        force = True
+                        striped = striped[1:].strip()
                     retval = self.__dispatch(session, striped.split())
-                    if retval != 0:
+                    if not force and retval != 0:
                         return retval
         except ValueError as e:
             print("error:", e, file=sys.stderr)
