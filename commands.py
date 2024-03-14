@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 from session import JsaSession
+import exceptions as JsaExceptions
 
 class JsaCommand:
     def exec(self, session: JsaSession, argv: list | None = None) -> int:
@@ -27,55 +28,63 @@ class Autosol(JsaCommand):
     def exec(self, session: JsaSession, argv: list | None = None) -> int:
         argv = argv or []
         args = self.__parseargs(argv)
+        deactivate: bool = args.deactivate
+        power_off: bool = args.power_off
+        sleep: float = args.sleep
+        power_on: bool = args.power_on
+        log: bool = args.log
+        output: str = args.output
+        d: bool = args.deactivate_and_activate
+        a: bool = args.activate_only
+        if d and a:
+            raise JsaExceptions.InvalidArgument(
+                "--deactivate-and-activate and --activate-only cannot be used together",
+            )
         session.validate()
-        output = self.__parse_output(session, args.output)
-        if not args.activate_only:
-            if args.deactivate:
-                session.send(['sol', 'deactivate'], stderr=subprocess.DEVNULL, check=False)
-            if not args.off:
-                session.send(['chassis', 'power', 'off'], check=False)
-                if args.sleep > 0:
-                    time.sleep(args.sleep)
+        if d or a:
+            power_off = False
+            power_on = False
+        if a:
+            deactivate = False
+        if log:
+            output_parsed = self.__parse_output(session, output)
+            stdout = subprocess.PIPE
+            stderr = subprocess.STDOUT
+        else:
+            output_parsed = None
+            stdout = None
+            stderr = None
+        if deactivate:
+            session.send(['sol', 'deactivate'], stderr=subprocess.DEVNULL, check=False)
+        if power_off:
+            session.send(['chassis', 'power', 'off'], check=False)
+            if sleep > 0:
+                time.sleep(sleep)
+        if power_on:
             session.send(['chassis', 'power', 'on'], check=False)
         proc = subprocess.Popen(
             session.construct_full_ipmi_args(['sol', 'activate']),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stdout=stdout,
+            stderr=stderr,
         )
-        with open(output, 'w', encoding='utf-8', errors='ignore') as sol_log:
-            while True:
-                byte = proc.stdout.read(1)
-                if byte:
-                    char = byte.decode(encoding='utf-8', errors='ignore')
-                    sys.stdout.write(char)
-                    sys.stdout.flush()
-                    sol_log.write(char)
-                    sol_log.flush()
-                else:
-                    break
+        if output_parsed:
+            with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
+                while True:
+                    byte = proc.stdout.read(1)
+                    if byte:
+                        char = byte.decode(encoding='utf-8', errors='ignore')
+                        sys.stdout.write(char)
+                        sys.stdout.flush()
+                        sol_log.write(char)
+                        sol_log.flush()
+                    else:
+                        break
         return proc.wait()
 
     def __parseargs(self, argv: list):
         parser = argparse.ArgumentParser(
             allow_abbrev=False,
             description="Deactivate SOL session, power off, sleep 10 seconds, power on, and activate SOL.",
-        )
-        parser.add_argument(
-            '-a',
-            '--activate-only',
-            action='store_true',
-            help="Only activate SOL",
-        )
-        parser.add_argument(
-            '--sleep',
-            type=float,
-            help="time to sleep (default %(default)s)",
-            default=10.0,
-        )
-        parser.add_argument(
-            '--off',
-            action='store_true',
-            help="System is already off (do not power off)",
         )
         parser.add_argument(
             '--deactivate',
@@ -88,6 +97,37 @@ class Autosol(JsaCommand):
             dest='deactivate',
             action='store_false',
             help="Do not deactivate previous possibly activated SOL session",
+        )
+        parser.add_argument(
+            '--power-off',
+            action='store_true',
+            default=True,
+            help="Perform power off (default)",
+        )
+        parser.add_argument(
+            '--no-power-off',
+            dest='power_off',
+            action='store_false',
+            help="Do not perform power off, and disable --sleep",
+        )
+        parser.add_argument(
+            '--sleep',
+            type=float,
+            metavar='SECONDS',
+            help="time to sleep after performing power off (default %(default)s)",
+            default=10.0,
+        )
+        parser.add_argument(
+            '--power-on',
+            action='store_true',
+            default=True,
+            help="Perform power on (default)",
+        )
+        parser.add_argument(
+            '--no-power-on',
+            dest='power_on',
+            action='store_false',
+            help="Do not perform power on",
         )
         parser.add_argument(
             '--log',
@@ -109,6 +149,18 @@ class Autosol(JsaCommand):
                 + "Date and time format is the same with strftime. " \
                 + "(default: %(default)s)",
             default=self.DEFAULT_OUTPUT,
+        )
+        parser.add_argument(
+            '-d',
+            '--deactivate-and-activate',
+            action='store_true',
+            help="shortcut for --no-power-off and --no-power-on",
+        )
+        parser.add_argument(
+            '-a',
+            '--activate-only',
+            action='store_true',
+            help="shortcut for --no-deactivate, --no-power-off, and --no-power-on",
         )
         return parser.parse_args(argv)
 
