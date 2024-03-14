@@ -72,7 +72,7 @@ def __parse_args() -> argparse.ArgumentParser:
     parser.add_argument(
         'command',
         nargs='?',
-        help="command to be executed (jsa, custom, or IPMI command)",
+        help="command to be executed (built-in command, script, or IPMI command)",
     )
     parser.add_argument(
         'arguments',
