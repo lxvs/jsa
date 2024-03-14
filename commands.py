@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import argparse
+import colorama
 import subprocess
 from pathlib import Path
 
@@ -68,6 +69,7 @@ class Autosol(JsaCommand):
             stderr=stderr,
         )
         if output_parsed:
+            colorama.just_fix_windows_console()
             with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
                 while True:
                     byte = proc.stdout.read(1)
