@@ -1,3 +1,7 @@
+__pycache__/
 /custom/
 /log/
 /JViewer/jar/
+/*.spec
+/build/
+/dist/
