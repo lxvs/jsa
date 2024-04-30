@@ -183,7 +183,11 @@ class Sleep(JsaCommand):
     def exec(self, session: JsaSession, argv: list | None = None) -> int:
         argv = argv or []
         args = self.__parseargs(argv)
-        time.sleep(args.seconds)
+        seconds: float = args.seconds
+        quiet: bool = args.quiet
+        if not quiet:
+            print(f"Sleep {seconds} second(s)")
+        time.sleep(seconds)
 
     def __parseargs(self, argv: list):
         parser = argparse.ArgumentParser(
@@ -196,5 +200,12 @@ class Sleep(JsaCommand):
             type=float,
             default=1.0,
             help="The number of seconds to sleep (default: %(default)s)",
+        )
+        parser.add_argument(
+            "-q",
+            "--quiet",
+            "--silent",
+            action='store_true',
+            help="suppress all normal output",
         )
         return parser.parse_args(argv)
