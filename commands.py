@@ -71,16 +71,12 @@ class Autosol(JsaCommand):
         if output_parsed:
             colorama.just_fix_windows_console()
             with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
-                while True:
-                    byte = proc.stdout.read(1)
-                    if byte:
-                        char = byte.decode(encoding='utf-8', errors='ignore')
-                        sys.stdout.write(char)
-                        sys.stdout.flush()
-                        sol_log.write(char)
-                        sol_log.flush()
-                    else:
-                        break
+                while byte := proc.stdout.read(1):
+                    char = byte.decode(encoding='utf-8', errors='ignore')
+                    sys.stdout.write(char)
+                    sys.stdout.flush()
+                    sol_log.write(char)
+                    sol_log.flush()
         return proc.wait()
 
     def __parseargs(self, argv: list):
