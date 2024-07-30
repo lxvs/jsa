@@ -185,6 +185,7 @@ class Sleep(JsaCommand):
         if not quiet:
             print(f"Sleep {seconds} second(s)")
         time.sleep(seconds)
+        return 0
 
     @staticmethod
     def __parseargs(argv: list):
