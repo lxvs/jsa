@@ -10,8 +10,8 @@ class JsaScript:
     last_cmd: str | None = None
 
     def __init__(self, cmd: str, file: Path) -> None:
+        self.cmd = cmd
         self.file = file
-        self.last_cmd = cmd
 
     def exec(self, session: JsaSession, argv: list | None = None) -> int:
         try:
@@ -24,6 +24,7 @@ class JsaScript:
                     if striped[0] == '!':
                         force = True
                         striped = striped[1:].strip()
+                    JsaScript.last_cmd = self.cmd
                     retval = self.__dispatch(session, striped.split())
                     if not force and retval != 0:
                         return retval
@@ -38,7 +39,7 @@ class JsaScript:
             return cmd_instance.exec(session, argv)
         cmd_instance = JsaScriptDispatcher.get_instance(cmd)
         if cmd_instance:
-            if cmd_instance.last_cmd == cmd:
+            if JsaScript.last_cmd == cmd:
                 raise JsaExceptions.SelfRecursiveError(f"self recursive script: {cmd}")
             return cmd_instance.exec(session, argv)
         return session.send([cmd] + argv)
