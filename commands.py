@@ -10,25 +10,27 @@ from session import JsaSession
 import exceptions as JsaExceptions
 
 class JsaCommand:
-    def exec(self, session: JsaSession, argv: list | None = None) -> int:
+    def __init__(self, argv: list[str]) -> None:
+        self.argv = argv
+
+    def exec(self, session: JsaSession) -> int:
         raise NotImplementedError("exec not implemented")
 
 class JsaCommandDispatcher:
     @staticmethod
-    def get_instance(name: str) -> JsaCommand:
-        if name == 'autosol':
-            return Autosol()
-        if name == 'sleep':
-            return Sleep()
+    def get_instance(argv: list[str]) -> JsaCommand:
+        if argv[0] == 'autosol':
+            return Autosol(argv)
+        if argv[0] == 'sleep':
+            return Sleep(argv)
         else:
             return None
 
 class Autosol(JsaCommand):
     DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
 
-    def exec(self, session: JsaSession, argv: list | None = None) -> int:
-        argv = argv or []
-        args = self.__parseargs(argv)
+    def exec(self, session: JsaSession) -> int:
+        args = self.__parseargs()
         deactivate: bool = args.deactivate
         power_off: bool = args.power_off
         sleep: float = args.sleep
@@ -79,7 +81,7 @@ class Autosol(JsaCommand):
                     sol_log.flush()
         return proc.wait()
 
-    def __parseargs(self, argv: list):
+    def __parseargs(self):
         parser = argparse.ArgumentParser(
             allow_abbrev=False,
             description="Deactivate SOL session, power off, sleep 10 seconds, power on, and activate SOL.",
@@ -160,7 +162,7 @@ class Autosol(JsaCommand):
             action='store_true',
             help="shortcut for --no-deactivate, --no-power-off, and --no-power-on",
         )
-        return parser.parse_args(argv)
+        return parser.parse_args(self.argv[1:])
 
     def __parse_output(self, session: JsaSession, output: str) -> str:
         path = Path(output)
@@ -176,10 +178,8 @@ class Autosol(JsaCommand):
         return time.strftime(output, local_time)
 
 class Sleep(JsaCommand):
-    @staticmethod
-    def exec(_: JsaSession, argv: list | None = None) -> int:
-        argv = argv or []
-        args = Sleep.__parseargs(argv)
+    def exec(self, _: JsaSession) -> int:
+        args = self.__parseargs()
         seconds: float = args.seconds
         quiet: bool = args.quiet
         if not quiet:
@@ -187,8 +187,7 @@ class Sleep(JsaCommand):
         time.sleep(seconds)
         return 0
 
-    @staticmethod
-    def __parseargs(argv: list):
+    def __parseargs(self):
         parser = argparse.ArgumentParser(
             allow_abbrev=False,
             description="Sleep a given number of seconds.",
@@ -207,4 +206,4 @@ class Sleep(JsaCommand):
             action='store_true',
             help="suppress all normal output",
         )
-        return parser.parse_args(argv)
+        return parser.parse_args(self.argv[1:])

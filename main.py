@@ -106,17 +106,15 @@ def main() -> int:
         parser.print_help()
         return 1
     elif args.help:
-        return dispatch(session, args.command, ['--help'])
-    return dispatch(session, args.command, args.arguments + cmd_args)
+        return dispatch(session, [args.command, '--help'])
+    return dispatch(session, [args.command] + args.arguments + cmd_args)
 
-def dispatch(session: JsaSession, cmd: str, cmd_args: list) -> int:
-    cmd_instance = JsaCommandDispatcher.get_instance(cmd)
-    if cmd_instance:
-        return cmd_instance.exec(session, cmd_args)
-    cmd_instance = JsaScriptDispatcher.get_instance(cmd)
-    if cmd_instance:
-        return cmd_instance.exec(session, cmd_args)
-    return session.send([cmd] + cmd_args)
+def dispatch(session: JsaSession, argv: list[str]) -> int:
+    if cmd_instance := JsaCommandDispatcher.get_instance(argv):
+        return cmd_instance.exec(session)
+    if cmd_instance := JsaScriptDispatcher.get_instance(argv):
+        return cmd_instance.exec(session)
+    return session.send(argv)
 
 if __name__ == '__main__':
     try:

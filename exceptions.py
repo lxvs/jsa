@@ -7,5 +7,8 @@ class InvalidIpmiTool(JsaError):
 class InvalidArgument(JsaError):
     pass
 
-class SelfRecursiveError(JsaError):
+class JsaScriptError(JsaError):
+    pass
+
+class SelfRecursiveError(JsaScriptError):
     pass
