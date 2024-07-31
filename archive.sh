@@ -64,6 +64,7 @@ archive_linux () {
         set +o noglob
         rm -f "$name"-*.tgz
     )
+    printf "creating archive: %s\n" "$archive_name.tgz"
     tar -zcf "$archive_name.tgz" "$name/" || return
 }
 
