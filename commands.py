@@ -62,7 +62,7 @@ class Autosol(JsaCommand):
         if power_off:
             session.send(['chassis', 'power', 'off'], check=False)
             if sleep > 0:
-                Sleep.exec(None, [str(sleep)])
+                Sleep([None, str(sleep)]).exec(None)
         if power_on:
             session.send(['chassis', 'power', 'on'], check=False)
         proc = subprocess.Popen(
