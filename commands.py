@@ -10,8 +10,8 @@ from session import JsaSession
 import exceptions as JsaExceptions
 
 class JsaCommand:
-    def __init__(self, argv: list[str]) -> None:
-        self.argv = argv
+    def __init__(self, arguments: list[str]) -> None:
+        self.arg = arguments
 
     def exec(self, session: JsaSession) -> int:
         raise NotImplementedError("exec not implemented")
@@ -20,11 +20,11 @@ class JsaCommandDispatcher:
     @staticmethod
     def get_instance(argv: list[str]) -> JsaCommand:
         if argv[0] == 'autosol':
-            return Autosol(argv)
+            return Autosol(argv[1:])
         if argv[0] == 'sleep':
-            return Sleep(argv)
+            return Sleep(argv[1:])
         if argv[0] == 'echo':
-            return Echo(argv)
+            return Echo(argv[1:])
         else:
             return None
 
@@ -164,7 +164,7 @@ class Autosol(JsaCommand):
             action='store_true',
             help="shortcut for --no-deactivate, --no-power-off, and --no-power-on",
         )
-        return parser.parse_args(self.argv[1:])
+        return parser.parse_args(self.arg)
 
     def __parse_output(self, session: JsaSession, output: str) -> str:
         path = Path(output)
@@ -208,9 +208,9 @@ class Sleep(JsaCommand):
             action='store_true',
             help="suppress all normal output",
         )
-        return parser.parse_args(self.argv[1:])
+        return parser.parse_args(self.arg)
 
 class Echo(JsaCommand):
     def exec(self, _: JsaSession) -> int:
-        print(*self.argv[1:])
+        print(*self.arg)
         return 0
