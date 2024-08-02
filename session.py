@@ -124,7 +124,7 @@ class JsaSession:
         if self.tool_valid:
             return
         if self.type is JsaSession.ToolType.NONE:
-            raise JsaExceptions.InvalidIpmiTool(f"ipmitool not found")
+            raise JsaExceptions.InvalidIpmiTool("ipmitool not found")
         if not self.path.is_file():
             raise JsaExceptions.InvalidIpmiTool(f"invalid ipmitool: {self.path}")
         if not os.access(self.path, os.X_OK):

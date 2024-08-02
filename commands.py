@@ -2,9 +2,10 @@ import os
 import sys
 import time
 import argparse
-import colorama
 import subprocess
 from pathlib import Path
+
+import colorama
 
 from session import JsaSession
 import exceptions as JsaExceptions
@@ -25,8 +26,7 @@ class JsaCommandDispatcher:
             return Sleep(argv[1:])
         if argv[0] == 'echo':
             return Echo(argv[1:])
-        else:
-            return None
+        return None
 
 class Autosol(JsaCommand):
     DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
@@ -86,7 +86,8 @@ class Autosol(JsaCommand):
     def __parseargs(self):
         parser = argparse.ArgumentParser(
             allow_abbrev=False,
-            description="Deactivate SOL session, power off, sleep 10 seconds, power on, and activate SOL.",
+            description="Deactivate SOL session, power off, sleep 10 seconds, power on, and "
+                        "activate SOL.",
         )
         parser.add_argument(
             '--deactivate',
@@ -146,10 +147,9 @@ class Autosol(JsaCommand):
         parser.add_argument(
             '-o',
             '--output',
-            help="path of the log file for the SOL output (can be a directory). " \
-                + "$(hostname) will be replaced to actual hostname. " \
-                + "Date and time format is the same with strftime. " \
-                + "(default: %(default)s)",
+            help="path of the log file for the SOL output (can be a directory). $(hostname) will "
+                 "be replaced to actual hostname. Date and time format is the same with strftime. "
+                 "(default: %(default)s)",
             default=self.DEFAULT_OUTPUT,
         )
         parser.add_argument(

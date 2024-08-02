@@ -74,7 +74,9 @@ class JsaScript:
                     stack += 1
                 n = int(line[i + 1 : i + stack + 1])
                 if self.argc - 1 < n:
-                    raise JsaExceptions.JsaScriptError(f"too few arguments, at least {n} required by script `{self.argv[0]}'")
+                    raise JsaExceptions.JsaScriptError(
+                        f"too few arguments, at least {n} required by script `{self.argv[0]}'"
+                    )
                 processed += self.argv[n]
                 continue
             processed += line[i]

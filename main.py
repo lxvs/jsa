@@ -105,7 +105,7 @@ def main() -> int:
     if args.command is None:
         parser.print_help()
         return 1
-    elif args.help:
+    if args.help:
         return dispatch(session, [args.command, '--help'])
     return dispatch(session, [args.command] + args.arguments + cmd_args)
 
