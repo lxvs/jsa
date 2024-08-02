@@ -17,17 +17,6 @@ class JsaCommand:
     def exec(self, session: JsaSession) -> int:
         raise NotImplementedError("exec not implemented")
 
-class JsaCommandDispatcher:
-    @staticmethod
-    def get_instance(argv: list[str]) -> JsaCommand:
-        if argv[0] == 'autosol':
-            return Autosol(argv[1:])
-        if argv[0] == 'sleep':
-            return Sleep(argv[1:])
-        if argv[0] == 'echo':
-            return Echo(argv[1:])
-        return None
-
 class Autosol(JsaCommand):
     DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
 
@@ -85,6 +74,7 @@ class Autosol(JsaCommand):
 
     def __parseargs(self):
         parser = argparse.ArgumentParser(
+            prog="jsa autosol",
             allow_abbrev=False,
             description="Deactivate SOL session, power off, sleep 10 seconds, power on, and "
                         "activate SOL.",
@@ -191,6 +181,7 @@ class Sleep(JsaCommand):
 
     def __parseargs(self):
         parser = argparse.ArgumentParser(
+            prog="jsa sleep",
             allow_abbrev=False,
             description="Sleep a given number of seconds.",
         )
@@ -214,3 +205,16 @@ class Echo(JsaCommand):
     def exec(self, _: JsaSession) -> int:
         print(*self.arg)
         return 0
+
+COMMANDS = {
+    'autosol': Autosol,
+    'sleep': Sleep,
+    'echo': Echo,
+}
+
+class JsaCommandDispatcher:
+    @staticmethod
+    def get_instance(argv: list[str]) -> JsaCommand:
+        if argv[0] in COMMANDS.keys():
+            return COMMANDS[argv[0]](argv[1:])
+        return None

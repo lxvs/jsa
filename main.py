@@ -8,7 +8,7 @@ import subprocess
 
 import exceptions as JsaExceptions
 from session import JsaSession
-from commands import JsaCommandDispatcher
+from commands import JsaCommandDispatcher, COMMANDS
 from script import JsaScriptDispatcher
 
 def get_version(session: JsaSession) -> str:
@@ -19,8 +19,11 @@ def get_version(session: JsaSession) -> str:
 
 def __parse_args() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
+        prog="jsa",
         allow_abbrev=False,
         add_help=False,
+        description=f"built-in commands: {', '.join(COMMANDS.keys())}. "
+                    "Try `jsa <command> --help' for more information.",
     )
     parser.add_argument(
         '-h',
