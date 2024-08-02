@@ -21,6 +21,7 @@ init () {
 }
 
 update_version () {
+    trap clean_up INT TERM
     description=`git describe --always` || exit
     description=${description#v}
     original_version=`grep "$version_pattern" "$version_py"` || exit
@@ -32,6 +33,7 @@ build () {
 }
 
 restore_version () {
+    trap - INT TERM
     sed -bi -e "s/$version_pattern/$original_version/" "$version_py"
 }
 
@@ -96,6 +98,11 @@ find_7z () {
         return 1
     fi
     return 0
+}
+
+clean_up () {
+    restore_version
+    exit 1
 }
 
 main "$@"
