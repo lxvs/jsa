@@ -23,6 +23,8 @@ class JsaCommandDispatcher:
             return Autosol(argv)
         if argv[0] == 'sleep':
             return Sleep(argv)
+        if argv[0] == 'echo':
+            return Echo(argv)
         else:
             return None
 
@@ -62,7 +64,7 @@ class Autosol(JsaCommand):
         if power_off:
             session.send(['chassis', 'power', 'off'], check=False)
             if sleep > 0:
-                Sleep([None, str(sleep)]).exec(None)
+                Sleep([str(sleep)]).exec(None)
         if power_on:
             session.send(['chassis', 'power', 'on'], check=False)
         proc = subprocess.Popen(
@@ -207,3 +209,8 @@ class Sleep(JsaCommand):
             help="suppress all normal output",
         )
         return parser.parse_args(self.argv[1:])
+
+class Echo(JsaCommand):
+    def exec(self, _: JsaSession) -> int:
+        print(*self.argv[1:])
+        return 0
