@@ -33,6 +33,7 @@ class JsaScript:
         except ValueError as e:
             print("error:", e, file=sys.stderr)
             return 1
+        return 0
 
     def process_dollars(self, line: str) -> str:
         if '$' not in line:
