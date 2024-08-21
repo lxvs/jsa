@@ -18,7 +18,12 @@ class JsaCommand:
         raise NotImplementedError("exec not implemented")
 
 class Autosol(JsaCommand):
-    DEFAULT_OUTPUT = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
+    OUTPUT_DEFAULT_FILENAME = r'autosol-$(hostname)-%Y%m%d-%H%M%S.log'
+    OUTPUT_VAR = 'JSA_AUTOSOL_OUTPUT'
+
+    def __init__(self, arguments: list[str]) -> None:
+        super().__init__(arguments)
+        self.output_default = os.environ.get(self.OUTPUT_VAR, None) or self.OUTPUT_DEFAULT_FILENAME
 
     def exec(self, session: JsaSession) -> int:
         args = self.__parseargs()
@@ -140,7 +145,7 @@ class Autosol(JsaCommand):
             help="path of the log file for the SOL output (can be a directory). $(hostname) will "
                  "be replaced to actual hostname. Date and time format is the same with strftime. "
                  "(default: %(default)s)",
-            default=self.DEFAULT_OUTPUT,
+            default=self.output_default,
         )
         parser.add_argument(
             '-d',
@@ -159,10 +164,10 @@ class Autosol(JsaCommand):
     def __parse_output(self, session: JsaSession, output: str) -> str:
         path = Path(output)
         if path.is_dir():
-            output = str(path / self.DEFAULT_OUTPUT)
+            output = str(path / self.OUTPUT_DEFAULT_FILENAME)
         elif output.endswith(os.sep) or (os.altsep and output.endswith(os.altsep)):
             path.mkdir(parents=True)
-            output = str(path / self.DEFAULT_OUTPUT)
+            output = str(path / self.OUTPUT_DEFAULT_FILENAME)
         elif not path.parent.exists():
             path.parent.mkdir(parents=True)
         output = output.replace('$(hostname)', session.hostname)
