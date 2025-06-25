@@ -8,34 +8,31 @@ from pathlib import Path
 import definitions
 import exceptions as JsaExceptions
 
+class ToolType(Enum):
+    IPMITOOL_PATH = 'from IPMITOOL_PATH'
+    BUNDLED = 'bundled'
+    SHELL = 'from shell'
+    ARG = 'from argument'
+    NONE = ''
+
 class JsaSession:
-    path: Path | None = None
-    version: str | None = None
-    type: "JsaSession.ToolType" = None
-    tool_valid: bool = False
-
-    class ToolType(Enum):
-        IPMITOOL_PATH = 'from IPMITOOL_PATH'
-        BUNDLED = 'bundled'
-        SHELL = 'from shell'
-        ARG = 'from argument'
-        NONE = 'none'
-
     def __init__(
         self,
-        hostname: str | None = None,
-        username: str | None = None,
-        password: str | None = None,
-        interface: str | None = None,
-        tool_path: str | None = None,
+        hostname: str = '',
+        username: str = '',
+        password: str = '',
+        interface: str = '',
+        tool_path: str = '',
         dry_run: bool = False,
     ) -> None:
+        self.type: ToolType = ToolType.NONE
+        self.tool_valid: bool = False
         if tool_path:
             self.path = Path(tool_path)
-            self.type = JsaSession.ToolType.ARG
+            self.type = ToolType.ARG
             self.validate_tool()
             self.version = self.__get_ipmitool_version()
-        if not self.type:
+        if self.type is ToolType.NONE:
             self.get_ipmitool()
         self.raw_hostname = hostname
         self.hostname = self.__parse_hostname()
@@ -55,7 +52,7 @@ class JsaSession:
         """
         if os.environ.get('IPMITOOL_PATH') is not None:
             if os.access(os.environ['IPMITOOL_PATH'], os.X_OK):
-                self.type = JsaSession.ToolType.IPMITOOL_PATH
+                self.type = ToolType.IPMITOOL_PATH
                 self.path = Path(os.environ['IPMITOOL_PATH'])
                 self.version = self.__get_ipmitool_version()
                 return
@@ -69,18 +66,18 @@ class JsaSession:
             bundled_tool = None
 
         if bundled_tool and bundled_tool.is_file() and os.access(bundled_tool, os.X_OK):
-            self.type = JsaSession.ToolType.BUNDLED
+            self.type = ToolType.BUNDLED
             self.path = bundled_tool
             self.version = self.__get_ipmitool_version()
             return
 
         which = shutil.which('ipmitool')
         if which is not None:
-            self.type = JsaSession.ToolType.SHELL
+            self.type = ToolType.SHELL
             self.path = Path(which)
             self.version = self.__get_ipmitool_version()
 
-        self.type = JsaSession.ToolType.NONE
+        self.type = ToolType.NONE
 
     def __get_ipmitool_version(self) -> str:
         return subprocess.check_output([self.path, '-V'], encoding='utf-8').strip()
@@ -110,10 +107,10 @@ class JsaSession:
             return e.returncode
         return 0
 
-    def construct_full_ipmi_args(self, args: list | None = None) -> list:
+    def construct_full_ipmi_args(self, args: list[str]) -> list[str]:
         return [str(self.path)] + self.get_profile_args() + args
 
-    def get_profile_args(self) -> list:
+    def get_profile_args(self) -> list[str]:
         return ['-H', self.hostname, '-U', self.username, '-P', self.password, '-I', self.interface]
 
     def validate(self) -> None:
@@ -123,7 +120,7 @@ class JsaSession:
     def validate_tool(self) -> None:
         if self.tool_valid:
             return
-        if self.type is JsaSession.ToolType.NONE:
+        if self.type is ToolType.NONE:
             raise JsaExceptions.InvalidIpmiTool("ipmitool not found")
         if not self.path.is_file():
             raise JsaExceptions.InvalidIpmiTool(f"invalid ipmitool: {self.path}")
@@ -138,11 +135,8 @@ class JsaSession:
             raise JsaExceptions.InvalidArgument("hostname not specified")
         self.session_valid = True
 
-    def __parse_hostname(self) -> str | None:
-        if self.raw_hostname is None:
-            return None
-
-        hostname = str(self.raw_hostname)
+    def __parse_hostname(self) -> str:
+        hostname = self.raw_hostname.strip()
 
         if not hostname.replace('.', '').isdigit():
             return hostname

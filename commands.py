@@ -58,7 +58,7 @@ class Autosol(JsaCommand):
         if power_off:
             session.send(['chassis', 'power', 'off'], check=False)
             if sleep > 0:
-                Sleep([str(sleep)]).exec(None)
+                Sleep([str(sleep)]).exec()
         if power_on:
             session.send(['chassis', 'power', 'on'], check=False)
         proc = subprocess.Popen(
@@ -69,6 +69,8 @@ class Autosol(JsaCommand):
         if output_parsed:
             colorama.just_fix_windows_console()
             with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
+                if proc.stdout is None:
+                    raise JsaExceptions.JsaRuntimeError("proc.stdout is None")
                 while byte := proc.stdout.read(1):
                     char = byte.decode(encoding='utf-8', errors='ignore')
                     sys.stdout.write(char)
@@ -175,7 +177,7 @@ class Autosol(JsaCommand):
         return time.strftime(output, local_time)
 
 class Sleep(JsaCommand):
-    def exec(self, _: JsaSession) -> int:
+    def exec(self, session: JsaSession | None = None) -> int:
         args = self.__parseargs()
         seconds: float = args.seconds
         quiet: bool = args.quiet
@@ -207,7 +209,7 @@ class Sleep(JsaCommand):
         return parser.parse_args(self.arg)
 
 class Echo(JsaCommand):
-    def exec(self, _: JsaSession) -> int:
+    def exec(self, session: JsaSession) -> int:
         print(*self.arg)
         return 0
 
@@ -219,7 +221,7 @@ COMMANDS = {
 
 class JsaCommandDispatcher:
     @staticmethod
-    def get_instance(argv: list[str]) -> JsaCommand:
+    def get_instance(argv: list[str]) -> JsaCommand | None:
         if argv[0] in COMMANDS.keys():
             return COMMANDS[argv[0]](argv[1:])
         return None

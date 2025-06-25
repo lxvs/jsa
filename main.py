@@ -7,13 +7,13 @@ import argparse
 import subprocess
 
 import exceptions as JsaExceptions
-from session import JsaSession
+from session import JsaSession, ToolType
 from commands import JsaCommandDispatcher, COMMANDS
 from script import JsaScriptDispatcher
 
 def get_version(session: JsaSession) -> str:
     version = f"jsa {__version__}"
-    if session.type is not JsaSession.ToolType.NONE:
+    if session.type is not ToolType.NONE:
         version += f", {session.version} ({session.type.value})"
     return version
 

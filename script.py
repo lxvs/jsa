@@ -100,7 +100,7 @@ class JsaScriptDispatcher:
     path: Path = definitions.ROOT_PATH.with_name(dir)
 
     @classmethod
-    def get_instance(cls, argv: list[str]) -> JsaScript:
+    def get_instance(cls, argv: list[str]) -> JsaScript | None:
         file = cls.path / argv[0]
         if cls.ext:
             file = file.with_suffix('.' + cls.ext)

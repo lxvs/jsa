@@ -12,3 +12,6 @@ class JsaScriptError(JsaError):
 
 class SelfRecursiveError(JsaScriptError):
     pass
+
+class JsaRuntimeError(JsaError):
+    pass
