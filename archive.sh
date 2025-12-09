@@ -6,18 +6,26 @@ main () {
     local version_py="$main_py"
     local version_pattern='^\(VERSION\|__version__\) = .*'
     local name description original_version
-    init
+    init || return
     update_version
     build
     restore_version
     print_pdf
     copy_scripts
+    copy_profiles
     archive
+    test_help
 }
 
 init () {
     cd `git rev-parse --show-toplevel` || exit
     name=`basename "$PWD"`
+    if ! test "${VIRTUAL_ENV-}"; then
+        printf "activate venv\n"
+        . ./.venv/Scripts/activate || return
+    fi
+    printf "install packages\n"
+    pip install -q --disable-pip-version-check -r requirements.txt || return
 }
 
 update_version () {
@@ -38,11 +46,15 @@ restore_version () {
 }
 
 print_pdf () {
-    asciidoctor-pdf *.adoc -D "dist/$name/"
+    asciidoctor-pdf ./*.adoc -D "dist/$name/"
 }
 
 copy_scripts () {
     cp -r scripts/ "dist/$name/"
+}
+
+copy_profiles () {
+    cp profiles.toml "dist/$name/"
 }
 
 archive () {
@@ -61,13 +73,15 @@ archive () {
 
 archive_linux () {
     local archive_name="$name-$description-linux"
-    cd dist || return
     (
-        set +o noglob
-        rm -f "$name"-*.tgz
-    )
-    printf "creating archive: %s\n" "$archive_name.tgz"
-    tar -zcf "$archive_name.tgz" "$name/" || return
+        cd dist || return
+        (
+            set +o noglob
+            rm -f "$name"-*.tgz
+        )
+        printf "creating archive: %s\n" "$archive_name.tgz"
+        tar -zcf "$archive_name.tgz" "$name/" || return
+    ) || return
 }
 
 archive_windows () {
@@ -76,12 +90,14 @@ archive_windows () {
     exe7z=`find_7z` || return
     printf "using %s\n" "$exe7z"
     printf "creating archive: %s\n" "$archive_name.7z"
-    cd dist || return
     (
-        set +o noglob
-        rm -f "$name"-*.7z
-    )
-    "$exe7z" a -mx9 "$archive_name.7z" "$name/" || return
+        cd dist || return
+        (
+            set +o noglob
+            rm -f "$name"-*.7z
+        )
+        "$exe7z" a -mx9 "$archive_name.7z" "$name/" || return
+    ) || return
 }
 
 find_7z () {
@@ -98,6 +114,10 @@ find_7z () {
         return 1
     fi
     return 0
+}
+
+test_help () {
+    "./dist/$name/$name.exe" -h
 }
 
 clean_up () {
