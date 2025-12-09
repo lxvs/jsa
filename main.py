@@ -37,6 +37,11 @@ def __parse_args() -> argparse.ArgumentParser:
         action='store_true',
     )
     parser.add_argument(
+        '-r',
+        '--profile',
+        help="Load profile from profiles.toml",
+    )
+    parser.add_argument(
         '-H',
         '--hostname',
         help="Remote host name for LAN interface",
@@ -44,17 +49,14 @@ def __parse_args() -> argparse.ArgumentParser:
     parser.add_argument(
         '-U',
         '--username',
-        default="admin",
     )
     parser.add_argument(
         '-P',
         '--password',
-        default="admin",
     )
     parser.add_argument(
         '-I',
         '--interface',
-        default="lanplus",
     )
     parser.add_argument(
         '--ipmitool-path',
@@ -94,6 +96,7 @@ def main() -> int:
         args.interface,
         args.ipmitool_path,
         args.dry_run,
+        args.profile,
     )
 
     if args.version:

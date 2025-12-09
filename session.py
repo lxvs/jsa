@@ -7,6 +7,7 @@ from pathlib import Path
 
 import definitions
 import exceptions as JsaExceptions
+from ipmi_profile import IpmiProfile
 
 class ToolType(Enum):
     IPMITOOL_PATH = 'from IPMITOOL_PATH'
@@ -24,6 +25,7 @@ class JsaSession:
         interface: str = '',
         tool_path: str = '',
         dry_run: bool = False,
+        profile: str = '',
     ) -> None:
         self.type: ToolType = ToolType.NONE
         self.tool_valid: bool = False
@@ -34,11 +36,11 @@ class JsaSession:
             self.version = self.__get_ipmitool_version()
         if self.type is ToolType.NONE:
             self.get_ipmitool()
-        self.raw_hostname = hostname
-        self.hostname = self.__parse_hostname()
-        self.username = username
-        self.password = password
-        self.interface = interface
+        __profile = IpmiProfile(profile)
+        self.hostname = self.__parse_hostname(hostname) or self.__parse_hostname(__profile.hostname)
+        self.username = username or __profile.username
+        self.password = password or __profile.password
+        self.interface = interface or __profile.interface
         self.dry_run = dry_run
         self.session_valid = False
 
@@ -135,8 +137,9 @@ class JsaSession:
             raise JsaExceptions.InvalidArgument("hostname not specified")
         self.session_valid = True
 
-    def __parse_hostname(self) -> str:
-        hostname = self.raw_hostname.strip()
+    def __parse_hostname(self, hostname) -> str:
+        if not hostname:
+            return hostname
 
         if not hostname.replace('.', '').isdigit():
             return hostname

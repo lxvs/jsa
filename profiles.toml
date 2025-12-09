@@ -1,0 +1,7 @@
+[default]
+username = "admin"
+password = "admin"
+interface = "lanplus"
+
+[example]
+hostname = "example.com"
