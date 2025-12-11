@@ -1,3 +1,4 @@
+import sys
 import tomllib
 from pathlib import Path
 from definitions import ROOT_PATH
@@ -15,10 +16,14 @@ class IpmiProfile:
     interface: str = ''
 
     def __init__(self, profile_name: str, toml: Path | None = None) -> None:
-        if not profile_name:
-            return
         if not toml:
             toml = ROOT_PATH.with_name('profiles.toml')
+        if not toml.exists():
+            if profile_name:
+                print(f"warning: {toml} not found", file=sys.stderr)
+            return
+        if not profile_name:
+            profile_name = 'default'
         with open(toml, 'rb') as f:
             cfg: dict[str, dict[str, str]] = tomllib.load(f)
         if profile_name not in cfg:
