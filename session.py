@@ -36,11 +36,11 @@ class JsaSession:
             self.version = self.__get_ipmitool_version()
         if self.type is ToolType.NONE:
             self.get_ipmitool()
-        __profile = IpmiProfile(profile)
-        self.hostname = self.__parse_hostname(hostname) or self.__parse_hostname(__profile.hostname)
-        self.username = username or __profile.username
-        self.password = password or __profile.password
-        self.interface = interface or __profile.interface
+        self.profile = IpmiProfile(profile)
+        self.hostname = self.__parse_hostname(hostname)
+        self.username = username
+        self.password = password
+        self.interface = interface
         self.dry_run = dry_run
         self.session_valid = False
 
@@ -112,7 +112,17 @@ class JsaSession:
         return [str(self.path)] + self.get_profile_args() + args
 
     def get_profile_args(self) -> list[str]:
-        return ['-H', self.hostname, '-U', self.username, '-P', self.password, '-I', self.interface]
+        r = []
+        if (h := self.hostname) \
+            or self.profile.rawhostname and (h := self.__parse_hostname(self.profile.rawhostname)):
+            r.extend(['-H', h])
+        if (u := self.username) or (u := self.profile.username):
+            r.extend(['-U', u])
+        if (p := self.password) or (p := self.profile.password):
+            r.extend(['-P', p])
+        if (i := self.interface) or ( i:= self.profile.interface):
+            r.extend(['-I', i])
+        return r
 
     def validate(self) -> None:
         self.validate_tool()
@@ -136,7 +146,8 @@ class JsaSession:
             raise JsaExceptions.InvalidArgument("hostname not specified")
         self.session_valid = True
 
-    def __parse_hostname(self, hostname) -> str:
+    @staticmethod
+    def __parse_hostname(hostname) -> str:
         if not hostname:
             return hostname
 
@@ -145,7 +156,7 @@ class JsaSession:
 
         segments = hostname.strip('.').split('.')
         seg_len = len(segments)
-        pref = self.__get_jsa_ip_pref()
+        pref = JsaSession.__get_jsa_ip_pref()
         pref_len = len(pref)
 
         if seg_len > 4 or seg_len + pref_len < 4:
@@ -154,7 +165,8 @@ class JsaSession:
         slice_end = 4 - seg_len
         return '.'.join(pref[:slice_end] + segments)
 
-    def __get_jsa_ip_pref(self) -> list:
+    @staticmethod
+    def __get_jsa_ip_pref() -> list:
         prefix = os.environ.get('JSA_IP_PREF')
         if prefix is None:
             return []
