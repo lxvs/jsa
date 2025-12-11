@@ -72,22 +72,12 @@ def __parse_args() -> argparse.ArgumentParser:
         action='store_true',
         help="Print command and arguments and exit.",
     )
-    parser.add_argument(
-        'command',
-        nargs='?',
-        help="command to be executed (built-in command, script, or IPMI command)",
-    )
-    parser.add_argument(
-        'arguments',
-        nargs='*',
-        help="arguments of the command",
-    )
 
     return parser
 
 def main() -> int:
     parser = __parse_args()
-    args, cmd_args = parser.parse_known_args()
+    args, unknown = parser.parse_known_args()
 
     session = JsaSession(
         args.hostname,
@@ -108,12 +98,12 @@ def main() -> int:
         subprocess.run([session.path, '-h'], check=False)
         return 0
 
-    if args.command is None:
+    if not unknown:
         parser.print_help()
         return 0 if args.help else 1
     if args.help:
-        return dispatch(session, [args.command, '--help'])
-    return dispatch(session, [args.command] + args.arguments + cmd_args)
+        return dispatch(session, unknown + ['--help'])
+    return dispatch(session, unknown)
 
 def dispatch(session: JsaSession, argv: list[str]) -> int:
     if cmd_instance := JsaCommandDispatcher.get_instance(argv):
