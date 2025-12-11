@@ -78,8 +78,7 @@ class JsaSession:
             self.type = ToolType.SHELL
             self.path = Path(which)
             self.version = self.__get_ipmitool_version()
-
-        self.type = ToolType.NONE
+            return
 
     def __get_ipmitool_version(self) -> str:
         return subprocess.check_output([self.path, '-V'], encoding='utf-8').strip()
