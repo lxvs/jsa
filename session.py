@@ -113,13 +113,13 @@ class JsaSession:
     def get_profile_args(self) -> list[str]:
         r = []
         if (h := self.hostname) \
-            or self.profile.rawhostname and (h := self.__parse_hostname(self.profile.rawhostname)):
+            or self.profile.valid and (h := self.__parse_hostname(self.profile.rawhostname)):
             r.extend(['-H', h])
-        if (u := self.username) or (u := self.profile.username):
+        if (u := self.username) or self.profile.valid and (u := self.profile.username):
             r.extend(['-U', u])
-        if (p := self.password) or (p := self.profile.password):
+        if (p := self.password) or self.profile.valid and (p := self.profile.password):
             r.extend(['-P', p])
-        if (i := self.interface) or ( i:= self.profile.interface):
+        if (i := self.interface) or self.profile.valid and (i := self.profile.interface):
             r.extend(['-I', i])
         return r
 
