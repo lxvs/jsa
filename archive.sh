@@ -54,7 +54,7 @@ copy_scripts () {
 }
 
 copy_profiles () {
-    cp profiles.toml "dist/$name/"
+    cp profiles.example.toml "dist/$name/"
 }
 
 archive () {

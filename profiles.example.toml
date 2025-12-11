@@ -1,0 +1,14 @@
+# profiles.toml defines all profiles that can be used by `jsa -r PROFILE'
+
+# default profile is always used as fallback
+[default]
+username = "admin"
+password = "admin"
+interface = "lanplus"
+
+# with the [default] below, `jsa -r example' is the same with `jsa -H example.com -U admin -P admin -I lanplus'
+[example]
+hostname = "example.com"
+
+# -r has lower priority than -H, -U, -P, and -I
+# `jsa -r example -P newpass' is the same with `jsa -H example.com -U admin -P newpass -I lanplus'
