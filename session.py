@@ -42,7 +42,6 @@ class JsaSession:
         self.password = password
         self.interface = interface
         self.dry_run = dry_run
-        self.session_valid = False
 
     def get_ipmitool(self) -> None:
         """
@@ -91,7 +90,7 @@ class JsaSession:
             stderr = None,
             check = True,
     ) -> int:
-        self.validate()
+        self.validate_tool()
         full_args = self.construct_full_ipmi_args(args)
         if self.dry_run:
             print(' '.join(full_args))
@@ -124,10 +123,6 @@ class JsaSession:
             r.extend(['-I', i])
         return r
 
-    def validate(self) -> None:
-        self.validate_tool()
-        self.validate_session()
-
     def validate_tool(self) -> None:
         if self.tool_valid:
             return
@@ -138,13 +133,6 @@ class JsaSession:
         if not os.access(self.path, os.X_OK):
             raise JsaExceptions.InvalidIpmiTool(f"ipmitool not executable: {self.path}")
         self.tool_valid = True
-
-    def validate_session(self) -> None:
-        if self.session_valid:
-            return
-        if self.hostname is None:
-            raise JsaExceptions.InvalidArgument("hostname not specified")
-        self.session_valid = True
 
     @staticmethod
     def __parse_hostname(hostname) -> str:

@@ -39,7 +39,7 @@ class Autosol(JsaCommand):
             raise JsaExceptions.InvalidArgument(
                 "--deactivate-and-activate and --activate-only cannot be used together",
             )
-        session.validate()
+        session.validate_tool()
         if d or a:
             power_off = False
             power_on = False
