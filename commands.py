@@ -60,26 +60,26 @@ class Autosol(JsaCommand):
         if power_off:
             session.send(['chassis', 'power', 'off'], check=False)
             if sleep > 0:
-                Sleep([str(sleep)]).exec()
+                Sleep([str(sleep)]).exec(session)
         if power_on:
             session.send(['chassis', 'power', 'on'], check=False)
-        proc = subprocess.Popen(
-            session.construct_full_ipmi_args(['sol', 'activate']),
-            stdout=stdout,
-            stderr=stderr,
-        )
-        if output_parsed:
-            colorama.just_fix_windows_console()
-            with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
-                if proc.stdout is None:
-                    raise JsaExceptions.JsaRuntimeError("proc.stdout is None")
-                while byte := proc.stdout.read(1):
-                    char = byte.decode(encoding='utf-8', errors='ignore')
-                    sys.stdout.write(char)
-                    sys.stdout.flush()
-                    sol_log.write(char)
-                    sol_log.flush()
-        return proc.wait()
+        proc = session.popen(['sol', 'activate'], stdout=stdout, stderr=stderr)
+        if proc:
+            if output_parsed:
+                colorama.just_fix_windows_console()
+                with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
+                    if proc.stdout is None:
+                        raise JsaExceptions.JsaRuntimeError("proc.stdout is None")
+                    while byte := proc.stdout.read(1):
+                        char = byte.decode(encoding='utf-8', errors='ignore')
+                        sys.stdout.write(char)
+                        sys.stdout.flush()
+                        sol_log.write(char)
+                        sol_log.flush()
+            return proc.wait()
+        else:
+            print(f"will save SOL log to: {output_parsed}")
+            return 0
 
     def __parseargs(self):
         parser = argparse.ArgumentParser(
@@ -185,7 +185,8 @@ class Sleep(JsaCommand):
         quiet: bool = args.quiet
         if not quiet:
             print(f"Sleep {seconds} second(s)")
-        time.sleep(seconds)
+        if not session or not session.dry_run:
+            time.sleep(seconds)
         return 0
 
     def __parseargs(self):

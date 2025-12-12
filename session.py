@@ -108,6 +108,20 @@ class JsaSession:
             return e.returncode
         return 0
 
+    def popen(
+            self,
+            args: list,
+            stdin = None,
+            stdout = None,
+            stderr = None,
+    ):
+        self.validate_tool()
+        full_args = self.construct_full_ipmi_args(args)
+        if self.dry_run:
+            print(' '.join(full_args))
+            return None
+        return subprocess.Popen(full_args, stdin=stdin, stdout=stdout, stderr=stderr)
+
     def construct_full_ipmi_args(self, args: list[str]) -> list[str]:
         return [str(self.path)] + self.get_profile_args() + args
 
