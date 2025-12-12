@@ -1,6 +1,6 @@
 # Force system to boot to BIOS setup on next boot, and reset system immediately.
 
-chassis bootdev bios
+chassis bootdev bios $@
 
 # Prefix `!' to ignore non-zero return status and continue executing
 ! chassis power cycle

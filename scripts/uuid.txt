@@ -1,0 +1,3 @@
+# Get System GUID
+
+raw 0x06 0x37
