@@ -37,10 +37,11 @@ class JsaSession:
         if self.type is ToolType.NONE:
             self.get_ipmitool()
         self.profile = IpmiProfile(profile)
-        self.hostname = self.__parse_hostname(hostname)
-        self.username = username
-        self.password = password
-        self.interface = interface
+        self.hostname = self.__parse_hostname(hostname) \
+            or self.__parse_hostname(self.profile.rawhostname) if self.profile.valid else ''
+        self.username = username or self.profile.username if self.profile.valid else ''
+        self.password = password or self.profile.password if self.profile.valid else ''
+        self.interface = interface or self.profile.interface if self.profile.valid else ''
         self.dry_run = dry_run
 
     def get_ipmitool(self) -> None:
@@ -112,15 +113,14 @@ class JsaSession:
 
     def get_profile_args(self) -> list[str]:
         r = []
-        if (h := self.hostname) \
-            or self.profile.valid and (h := self.__parse_hostname(self.profile.rawhostname)):
-            r.extend(['-H', h])
-        if (u := self.username) or self.profile.valid and (u := self.profile.username):
-            r.extend(['-U', u])
-        if (p := self.password) or self.profile.valid and (p := self.profile.password):
-            r.extend(['-P', p])
-        if (i := self.interface) or self.profile.valid and (i := self.profile.interface):
-            r.extend(['-I', i])
+        if self.hostname:
+            r.extend(['-H', self.hostname])
+        if self.username:
+            r.extend(['-U', self.username])
+        if self.password:
+            r.extend(['-P', self.password])
+        if self.interface:
+            r.extend(['-I', self.interface])
         return r
 
     def validate_tool(self) -> None:

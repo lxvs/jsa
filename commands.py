@@ -40,6 +40,8 @@ class Autosol(JsaCommand):
                 "--deactivate-and-activate and --activate-only cannot be used together",
             )
         session.validate_tool()
+        if not session.hostname:
+            raise JsaExceptions.InvalidArgument("hostname not specified")
         if d or a:
             power_off = False
             power_on = False
