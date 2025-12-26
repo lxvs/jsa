@@ -38,10 +38,10 @@ class JsaSession:
             self.get_ipmitool()
         self.profile = IpmiProfile(profile)
         self.hostname = self.__parse_hostname(hostname) \
-            or self.__parse_hostname(self.profile.rawhostname) if self.profile.valid else ''
-        self.username = username or self.profile.username if self.profile.valid else ''
-        self.password = password or self.profile.password if self.profile.valid else ''
-        self.interface = interface or self.profile.interface if self.profile.valid else ''
+            or (self.__parse_hostname(self.profile.rawhostname) if self.profile.valid else '')
+        self.username = username or (self.profile.username if self.profile.valid else '')
+        self.password = password or (self.profile.password if self.profile.valid else '')
+        self.interface = interface or (self.profile.interface if self.profile.valid else '')
         self.dry_run = dry_run
 
     def get_ipmitool(self) -> None:
