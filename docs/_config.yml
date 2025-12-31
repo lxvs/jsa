@@ -20,7 +20,7 @@ repository: lxvs/jsa # for github-metadata
 
 defaults:
   - scope:
-      path: "docs" # an empty string here means all files in the project
+      path: "" # an empty string here means all files in the project
       type: "pages"
     values:
       layout: "default"
@@ -65,20 +65,20 @@ search:
   heading_level: 2
   # Maximum amount of previews per search result
   # Default: 3
-  previews: 2
+  previews: 3
   # Maximum amount of words to display before a matched word in the preview
   # Default: 5
-  preview_words_before: 3
+  preview_words_before: 5
   # Maximum amount of words to display after a matched word in the preview
   # Default: 10
-  preview_words_after: 3
+  preview_words_after: 10
   # Set the search token separator
   # Default: /[\s\-/]+/
   # Example: enable support for hyphenated search words
   tokenizer_separator: /[\s/]+/
   # Display the relative url in search results
   # Supports true (default) or false
-  rel_url: true
+  rel_url: false
   # Enable or disable the search button that appears in the bottom right corner of every page
   # Supports true or false (default)
   button: false
@@ -115,7 +115,7 @@ aux_links_new_tab: true
 
 # Enable or disable the side/mobile menu globally
 # Nav menu can also be selectively enabled or disabled using page variables or the minimal layout
-nav_enabled: false
+nav_enabled: true
 
 # Sort order for navigation links
 # nav_sort: case_insensitive # default, equivalent to nil
