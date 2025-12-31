@@ -1,9 +1,6 @@
 = JSA
-
 :toc: preamble
 :toclevels: 3
-:version-label: s
-
 ifdef::env-github[]
 :tip-caption: :bulb:
 :note-caption: :information_source:
@@ -20,9 +17,8 @@ It simplifies ipmitool invocation by,
 and interface),
 * adding <<scripting, scripting>> support,
 * adding some <<commands, built-in commands>> like autosol,
-* <<jsa-ip-pref, auto completing IPv4 prefix>> in hostname, and maybe more in future.
-
-toc::[]
+* <<jsa-ip-pref, auto completing IPv4 prefix>> in hostname,
+* and maybe more in future.
 
 == Usage
 
@@ -199,7 +195,7 @@ Arguments passed to scripts can be refered by special notations.
 
 $@, $*:: All arguments.  Currently `$@` and `$*` are equivalent.
 
-$1, $2, ...:: The first argument.  Similarly, `$2` is the second argument.
+$1, $2, ...:: `$1` is the first argument, `$2` the second, etc.
 The max number is up to the shell capacity.
 
 $#:: The number of arguments.
