@@ -18,6 +18,7 @@ main () {
     restore_version
     copy_scripts
     copy_profiles
+    copy_docs
     archive
     test_help
 }
@@ -88,6 +89,11 @@ copy_scripts () {
 
 copy_profiles () {
     cp profiles.example.toml "dist/$name/"
+}
+
+copy_docs () {
+    git clean -fx -- docs/
+    find docs/ -name '*.md' -exec cp --parents -t "dist/$name/" {} +
 }
 
 archive () {
