@@ -1,4 +1,8 @@
 #!/bin/sh
+# SC1007: Allow space after variable=
+# Allow local at it is supported on most shells
+# shellcheck disable=SC1007,SC3043
+
 set -o nounset
 
 main () {
@@ -6,6 +10,7 @@ main () {
     local version_py="$main_py"
     local version_pattern='^\(VERSION\|__version__\) = .*'
     local name description original_version
+    local sys=$(uname -s)
     init || return
     update_version
     build
@@ -18,8 +23,8 @@ main () {
 }
 
 init () {
-    cd `git rev-parse --show-toplevel` || exit
-    name=`basename "$PWD"`
+    cd "$(git rev-parse --show-toplevel)" || exit
+    name=$(basename "$PWD")
     if ! test "${VIRTUAL_ENV-}"; then
         printf "activate venv\n"
         . ./.venv/Scripts/activate || return
@@ -30,9 +35,9 @@ init () {
 
 update_version () {
     trap clean_up INT TERM
-    description=`git describe --always` || exit
+    description=$(git describe --always) || exit
     description=${description#v}
-    original_version=`grep "$version_pattern" "$version_py"` || exit
+    original_version=$(grep "$version_pattern" "$version_py") || exit
     sed -bi -e "s/$version_pattern/\1 = \"$description\"/" "$version_py" || exit
 }
 
@@ -58,15 +63,15 @@ copy_profiles () {
 }
 
 archive () {
-    case ${OSTYPE-} in
-    linux-gnu)
+    case $sys in
+    Linux)
         archive_linux
         ;;
-    msys)
+    MINGW*)
         archive_windows
         ;;
     *)
-        printf >&2 "error: unknown OS type: %s\n" "${OSTYPE-'(Undefined)'}"
+        printf >&2 "error: unknown OS type: %s\n" "$sys"
         ;;
     esac
 }
@@ -87,7 +92,7 @@ archive_linux () {
 archive_windows () {
     local exe7z
     local archive_name="$name-$description-windows"
-    exe7z=`find_7z` || return
+    exe7z=$(find_7z) || return
     printf "using %s\n" "$exe7z"
     printf "creating archive: %s\n" "$archive_name.7z"
     (
