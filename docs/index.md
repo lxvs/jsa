@@ -26,35 +26,35 @@ jsa [<options>] <command> [<argument> ...]
 : An IPMI command or a [built-in commands].
   Use `jsa <command> --help` for usage on a specific built-in command.
 
--h, --help
+-h, \--help
 : Print help and exit; can be used with commands
 
--V, --version
+-V, \--version
 : Print version and exit
 
--H, --hostname HOSTNAME
+-H, \--hostname HOSTNAME
 : Remote host name for ipmitool commands.
 
--U, --username USERNAME
+-U, \--username USERNAME
 : Username of remote host for ipmitool commands.
 
--P, --password PASSWORD
+-P, \--password PASSWORD
 : Password of remote host for ipmitool commands.
 
--I, --interface INTERFACE
+-I, \--interface INTERFACE
 : Interface for ipmitool commands.
 
--r, --profile PROFILE
+-r, \--profile PROFILE
 : Load [profile] from `profiles.toml`.
 It has lower priority than -H, -U, -P, and -I.
 
---ipmitool-path IPMITOOL_PATH
+\--ipmitool-path IPMITOOL_PATH
 : Path to ipmitool executable to be used this time only.
 
---ipmitool-help
+\--ipmitool-help
 : Show help information of ipmitool.
 
---dry-run
+\--dry-run
 : Print the command and arguments that would be executed and exit.
 
 [profile]: profile

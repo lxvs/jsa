@@ -15,7 +15,7 @@ jsa [<jsa_options>] sleep [<seconds>] [-q]
 \<seconds>
 : The number of seconds to sleep, can be a float number.  Default is **1.0**.
 
--q, --queit, --silent
+-q, \--queit, \--silent
 : Suppress all normal output.
 
 [scripting]: scripting
