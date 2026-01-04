@@ -16,7 +16,6 @@ main () {
     update_version
     build
     restore_version
-    print_pdf
     copy_scripts
     copy_profiles
     archive
@@ -77,10 +76,6 @@ build () {
 restore_version () {
     trap - INT TERM
     sed -bi -e "s/$version_pattern/$original_version/" "$version_py"
-}
-
-print_pdf () {
-    asciidoctor-pdf ./*.adoc -D "dist/$name/"
 }
 
 copy_scripts () {
