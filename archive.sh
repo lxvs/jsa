@@ -75,7 +75,9 @@ update_version () {
 }
 
 build () {
-    pyinstaller "$main_py" -y --noupx --contents-directory dependencies --name "$name"
+    pyinstaller "$main_py" --name "$name" \
+        -y --noupx --contents-directory dependencies \
+        --icon docs/favicon.ico
 }
 
 restore_version () {
