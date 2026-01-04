@@ -136,7 +136,14 @@ find_7z () {
 }
 
 test_help () {
-    "./dist/$name/$name.exe" -h
+    case $os_type in
+        linux)
+            "./dist/$name/$name" -h
+            ;;
+        windows)
+            "./dist/$name/$name.exe" -h
+            ;;
+    esac
 }
 
 clean_up () {
