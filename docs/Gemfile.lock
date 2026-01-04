@@ -18,8 +18,11 @@ GEM
       logger
     faraday-net_http (3.4.2)
       net-http (~> 0.5)
+    faraday-retry (2.4.0)
+      faraday (~> 2.0)
     ffi (1.17.3-x64-mingw-ucrt)
     ffi (1.17.3-x86_64-linux-gnu)
+    fiddle (1.1.8)
     forwardable-extended (2.6.0)
     google-protobuf (4.33.2-x64-mingw-ucrt)
       bigdecimal
@@ -111,6 +114,8 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  faraday-retry
+  fiddle
   jekyll
   jekyll-github-metadata
   jekyll-include-cache
