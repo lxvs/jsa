@@ -10,7 +10,8 @@ main () {
     local version_py="$main_py"
     local version_pattern='^\(VERSION\|__version__\) = .*'
     local name description original_version
-    local sys=$(uname -s)
+    local os_type
+    set_os_type || return
     init || return
     update_version
     build
@@ -22,12 +23,40 @@ main () {
     test_help
 }
 
+set_os_type () {
+    local sys
+    if ! sys=$(uname -s); then
+        printf >&2 "error: unable to determine OS type\n"
+        return 1
+    fi
+    case $sys in
+    Linux)
+        os_type=linux
+        ;;
+    MINGW*|CYGWIN*)
+        os_type=windows
+        ;;
+    *)
+        printf >&2 "error: unknown OS type: %s\n" "$sys"
+        return 1
+        ;;
+    esac
+}
+
 init () {
     cd "$(git rev-parse --show-toplevel)" || exit
     name=$(basename "$PWD")
     if ! test "${VIRTUAL_ENV-}"; then
         printf "activate venv\n"
-        . ./.venv/Scripts/activate || return
+        # shellcheck disable=SC1091 # not following
+        case $os_type in
+            windows)
+                . .venv/Scripts/activate || return
+                ;;
+            *)
+                . .venv/bin/activate || return
+                ;;
+        esac
     fi
     printf "install packages\n"
     pip install -q --disable-pip-version-check -r requirements.txt || return
@@ -63,17 +92,7 @@ copy_profiles () {
 }
 
 archive () {
-    case $sys in
-    Linux)
-        archive_linux
-        ;;
-    MINGW*)
-        archive_windows
-        ;;
-    *)
-        printf >&2 "error: unknown OS type: %s\n" "$sys"
-        ;;
-    esac
+    "archive_$os_type"
 }
 
 archive_linux () {
