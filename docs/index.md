@@ -1,5 +1,6 @@
 ---
 title: Home
+description: JSA is an ipmitool wrapper that simplifies its invocation.
 nav_order: 1
 ---
 # JSA
