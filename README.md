@@ -8,54 +8,36 @@ It simplifies ipmitool invocation by,
 
 * adding [profile] support (a profile is a combination of any of hostname, username, password,
 and interface),
+    > `jsa -r node132 power status` instead of `ipmitool -H 192.168.10.132 -U user -P pass -I lanplus power status`
 * adding [scripting] support,
+    > `jsa -r node132 ps` instead of `ipmitool -H 192.168.10.132 -U user -P pass -I lanplus power status`
 * adding some [built-in commands] like autosol,
+    > `jsa ... autosol` instead of `ipmitool ... power off; ipmitool ... sol deactivate; ipmitool ... sol activate | tee sol.log`
 * [hostname auto completion],
+    > `jsa -H 132 ...` instead of `ipmitool -H 192.168.10.132 ...`
 * and maybe more in future.
 
-## Usage
+## Installation
 
-~~~ console
-jsa [<options>] <command> [<argument> ...]
-~~~
+### Install Pre-built Binaries
 
-\<command>
-: An IPMI command or a [built-in commands].
-  Use `jsa <command> --help` for usage on a specific built-in command.
+* Download release from [GitHub Releases].
+* Extract all contents of the archive to a directory.
+* Add that directory to PATH, or add a symlink to jsa executable to a directory in PATH.
 
--h, --help
-: Print help and exit; can be used with commands
+### Use from Python Source
 
--V, --version
-: Print version and exit
-
--H, --hostname HOSTNAME
-: Remote host name for ipmitool commands.
-
--U, --username USERNAME
-: Username of remote host for ipmitool commands.
-
--P, --password PASSWORD
-: Password of remote host for ipmitool commands.
-
--I, --interface INTERFACE
-: Interface for ipmitool commands.
-
--r, --profile PROFILE
-: Load [profile] from `profiles.toml`.
-It has lower priority than -H, -U, -P, and -I.
-
---ipmitool-path IPMITOOL_PATH
-: Path to ipmitool executable to be used this time only.
-
---ipmitool-help
-: Show help information of ipmitool.
-
---dry-run
-: Print the command and arguments that would be executed and exit.
+* Download or clone source to a directory.
+* Invoke jsa by `python3 "/path/to/jsa/main.py" ...`.
+* Optionally, use an aliases or a script:
+    * On Windows: create `jsa.cmd` in a directory in PATH (such as `C:\\Windows`), with content:
+      `python3 "/path/to/jsa/main.py" %*`.
+    * On GNU/Linux or Git Bash/Msys2/Cygwin on Windows: add jsa as an alias in your rc file (such as `~/.bashrc`):
+      `alias jsa='python3 "/path/to/jsa/main.py" "$@"'`.
 
 [Documentation]: https://lxvs.github.io/jsa
 [profile]: https://lxvs.github.io/jsa/profile
 [scripting]: https://lxvs.github.io/jsa/scripting
 [built-in commands]: https://lxvs.github.io/jsa/built-in-commands
 [hostname auto completion]: https://lxvs.github.io/jsa/hostname-auto-completion
+[GitHub Releases]: https://github.com/lxvs/jsa/releases

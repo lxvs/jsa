@@ -11,9 +11,13 @@ It simplifies ipmitool invocation by,
 
 * adding [profile] support (a profile is a combination of any of hostname, username, password,
 and interface),
+    > `jsa -r node132 power status` instead of `ipmitool -H 192.168.10.132 -U user -P pass -I lanplus power status`
 * adding [scripting] support,
+    > `jsa -r node132 ps` instead of `ipmitool -H 192.168.10.132 -U user -P pass -I lanplus power status`
 * adding some [built-in commands] like autosol,
+    > instead of `ipmitool ... power off; ipmitool ... sol deactivate; ipmitool ... sol activate | tee sol.log`
 * [hostname auto completion],
+    > `jsa -H 132 ...` instead of `ipmitool -H 192.168.10.132 ...`
 * and maybe more in future.
 
 ## Usage
@@ -23,8 +27,7 @@ jsa [<options>] <command> [<argument> ...]
 ~~~
 
 \<command>
-: An IPMI command or a [built-in commands].
-  Use `jsa <command> --help` for usage on a specific built-in command.
+: An IPMI command or a [built-in commands]. Use `jsa <command> --help` for usage on a specific built-in command.
 
 -h, \--help
 : Print help and exit; can be used with commands
