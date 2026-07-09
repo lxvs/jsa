@@ -107,6 +107,7 @@ class Autosol(JsaCommand):
             help="Perform power off (default)",
         )
         parser.add_argument(
+            '-n',
             '--no-power-off',
             dest='power_off',
             action='store_false',
