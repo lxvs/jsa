@@ -75,9 +75,9 @@ update_version () {
 }
 
 build () {
-    pyinstaller "$main_py" --name "$name" \
-        -y --noupx --contents-directory dependencies \
-        --icon docs/favicon.ico
+    local opts="--noupx --contents-directory dependencies --icon docs/favicon.ico"
+    printf 'pyinstaller "%s" --name "%s" %s\n' "$main_py" "$name" "$opts"
+    pyinstaller --log-level WARN -y "$main_py" --name "$name" $opts
 }
 
 restore_version () {
