@@ -1,7 +1,9 @@
 import sys
 import tomllib
 from pathlib import Path
+
 from definitions import ROOT_PATH
+from exceptions import JsaProfileError
 
 
 HOSTNAME = 'hostname'
@@ -23,7 +25,7 @@ class IpmiProfile:
         with open(toml, 'rb') as f:
             cfg: dict[str, dict[str, str]] = tomllib.load(f)
         if profile_name not in cfg:
-            raise KeyError(f"profile {profile_name} not found")
+            raise JsaProfileError(f"profile {profile_name} not found")
         self.rawhostname=cfg[profile_name].get(HOSTNAME) or cfg['default'].get(HOSTNAME) or ''
         self.username=cfg[profile_name].get(USERNAME) or cfg['default'].get(USERNAME) or ''
         self.password=cfg[profile_name].get(PASSWORD) or cfg['default'].get(PASSWORD) or ''
