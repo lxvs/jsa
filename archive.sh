@@ -5,45 +5,29 @@
 
 set -o nounset
 
-main () {
-    local main_py='main.py'
-    local version_py="$main_py"
-    local version_pattern='^\(VERSION\|__version__\) = .*'
-    local name description original_version
-    local os_type
-    set_os_type || return
-    init || return
-    update_version
-    build
-    restore_version
-    copy_scripts
-    copy_profiles
-    copy_docs
-    archive
-    test_help
-}
-
-set_os_type () {
+set_os_type ()
+{
     local sys
     if ! sys=$(uname -s); then
         printf >&2 "error: unable to determine OS type\n"
         return 1
     fi
     case $sys in
-    Linux)
-        os_type=linux
-        ;;
     MINGW*|CYGWIN*)
         os_type=windows
         ;;
+    Linux)
+        os_type=linux
+        ;;
     *)
-        printf >&2 "error: unknown OS type: %s\n" "$sys"
-        return 1
+        printf >&2 "warning: unknown OS type: %s; assuming unix-like\n" "$sys"
+        os_type=linux
         ;;
     esac
 }
 
-init () {
+init ()
+{
     cd "$(git rev-parse --show-toplevel)" || exit
     name=$(basename "$PWD")
     if ! test -d ".venv"; then
@@ -66,7 +50,9 @@ init () {
     pip install -q --disable-pip-version-check -r requirements.txt || return
 }
 
-update_version () {
+update_version ()
+{
+    test -f "$version_py" || return
     trap clean_up INT TERM
     description=$(git describe --always) || exit
     description=${description#v}
@@ -74,35 +60,72 @@ update_version () {
     sed -bi -e "s/$version_pattern/\1 = \"$description\"/" "$version_py" || exit
 }
 
-build () {
-    local opts="--noupx --contents-directory dependencies --icon docs/favicon.ico"
+build ()
+{
+    local opts="--noupx --contents-directory dependencies"
+    test -f "docs/favicon.ico" && opts="$opts --icon docs/favicon.ico"
     printf 'pyinstaller "%s" --name "%s" %s\n' "$main_py" "$name" "$opts"
     pyinstaller --log-level WARN -y "$main_py" --name "$name" $opts
 }
 
-restore_version () {
+restore_version ()
+{
+    test -f "$version_py" || return
     trap - INT TERM
     sed -bi -e "s/$version_pattern/$original_version/" "$version_py"
 }
 
-copy_scripts () {
+copy_scripts ()
+{
     cp -r scripts/ "dist/$name/"
 }
 
-copy_profiles () {
+copy_profiles ()
+{
     cp profiles.example.toml "dist/$name/"
 }
 
-copy_docs () {
+copy_docs ()
+{
     git clean -fx -- docs/
     find docs/ -name '*.md' -exec cp --parents -t "dist/$name/" {} +
 }
 
-archive () {
-    "archive_$os_type"
+find_7z ()
+{
+    local exe_from_7zip exe_from_jai
+    if type 7za >/dev/null 2>&1; then
+        printf "7za"
+    else
+        case $os_type in
+            windows)
+                exe_from_7zip="C:/Program Files/7-Zip/7z.exe"
+                exe_from_jai="$USERPROFILE/AppData/Local/Programs/jai/7za.exe"
+                if test -x "$exe_from_7zip"; then
+                    printf "%s" "$exe_from_7zip"
+                elif test -x "$exe_from_jai"; then
+                    printf "%s" "$exe_from_jai"
+                else
+                    printf >&2 "warning: no 7-Zip excutable available, skipping archive, see files to be archived in %s\n" "dist/"
+                    return 1
+                fi
+                ;;
+            linux)
+                printf >&2 "warning: no 7-Zip excutable available, skipping archive, see files to be archived in %s\n" "dist/"
+                return 1
+                ;;
+            *)
+                printf >&2 "warning: unknown OS type: %s; assuming unix-like\n" "$os_type"
+                printf >&2 "warning: no 7-Zip excutable available, skipping archive, see files to be archived in %s\n" "dist/"
+                return 1
+                ;;
+        esac
+    fi
+    return 0
 }
 
-archive_linux () {
+archive_linux ()
+{
     local archive_name="$name-$description-linux"
     (
         cd dist || return
@@ -115,7 +138,8 @@ archive_linux () {
     ) || return
 }
 
-archive_windows () {
+archive_windows ()
+{
     local exe7z
     local archive_name="$name-$description-windows"
     exe7z=$(find_7z) || return
@@ -131,36 +155,94 @@ archive_windows () {
     ) || return
 }
 
-find_7z () {
-    local exe_from_7zip="C:/Program Files/7-Zip/7z.exe"
-    local exe_from_jai="C:/Users/$USERNAME/AppData/Local/Programs/jai/7za.exe"
-    if test -x "$exe_from_7zip"
-    then
-        printf "%s" "$exe_from_7zip"
-    elif test -x "$exe_from_jai"
-    then
-        printf "%s" "$exe_from_jai"
-    else
-        printf >&2 "warning: no 7-Zip excutable available, skipping archive, see files to be archived in %s\n" "dist/$name/"
-        return 1
-    fi
-    return 0
+archive ()
+{
+    "archive_$os_type"
 }
 
-test_help () {
+test_ver_and_help ()
+{
     case $os_type in
+        windows)
+            "./dist/$name/$name.exe" -V
+            "./dist/$name/$name.exe" -h
+            ;;
         linux)
+            "./dist/$name/$name" -V
             "./dist/$name/$name" -h
             ;;
-        windows)
-            "./dist/$name/$name.exe" -h
+        *)
+            printf >&2 "warning: unknown OS type: %s; assuming unix-like\n" "$sys"
+            "./dist/$name/$name" -V
+            "./dist/$name/$name" -h
             ;;
     esac
 }
 
-clean_up () {
+clean_up ()
+{
     restore_version
     exit 1
+}
+
+find_main_py ()
+{
+    if test "${MAIN_PY-}"; then
+        if test -f "$MAIN_PY"; then
+            main_py="$MAIN_PY"
+        else
+            printf >&2 "error: invalid MAIN_PY: %s\n" "$MAIN_PY"
+            return 1
+        fi
+    elif test -f "main.py"; then
+        main_py="main.py"
+    elif test -f "$name.py"; then
+        main_py="$name.py"
+    else
+        printf >&2 "error: unable to find main py, specify with environment variable MAIN_PY\n"
+        return 1
+    fi
+
+    if test "${VERSION_PY-}"; then
+        if test -f "$VERSION_PY"; then
+            version_py="$VERSION_PY"
+        else
+            printf >&2 "error: invalid MAIN_PY: %s\n" "$MAIN_PY"
+            return 1
+        fi
+    elif grep -q "$version_pattern" "$main_py"; then
+        version_py="$main_py"
+    else
+        for x in ./*.py; do
+            test -f "$x" || continue
+            if grep -q "$version_pattern" "$x"; then
+                version_py="$x"
+                break
+            fi
+        done
+        if ! test -f "$version_py"; then
+            printf >&2 "warning: unable to find version py, specify with environment variable VERSION_PY\n"
+        fi
+    fi
+}
+
+main ()
+{
+    local main_py version_py=
+    local version_pattern='^\(VERSION\|__version__\) = .*'
+    local name description original_version
+    local os_type
+    set_os_type || return
+    init || return
+    find_main_py || return
+    update_version
+    build || { restore_version; return 1; }
+    restore_version
+    copy_scripts
+    copy_profiles
+    copy_docs
+    archive
+    test_ver_and_help
 }
 
 main "$@"
