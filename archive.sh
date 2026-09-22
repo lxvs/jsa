@@ -13,7 +13,7 @@ set_os_type ()
         return 1
     fi
     case $sys in
-    MINGW*|CYGWIN*)
+    MINGW*|CYGWIN*|MSYS*)
         os_type=windows
         ;;
     Linux)
