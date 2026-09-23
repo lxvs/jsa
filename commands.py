@@ -5,8 +5,6 @@ import argparse
 import subprocess
 from pathlib import Path
 
-import colorama
-
 from session import JsaSession
 import exceptions as JsaExceptions
 
@@ -66,7 +64,6 @@ class Autosol(JsaCommand):
         proc = session.popen(['sol', 'activate'], stdout=stdout, stderr=stderr)
         if proc:
             if output_parsed:
-                colorama.just_fix_windows_console()
                 with open(output_parsed, 'wb', buffering=0) as sol_log:
                     if proc.stdout is None:
                         raise JsaExceptions.JsaRuntimeError("proc.stdout is None")
