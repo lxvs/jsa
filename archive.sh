@@ -30,6 +30,7 @@ init ()
 {
     cd "$(git rev-parse --show-toplevel)" || exit
     name=$(basename "$PWD")
+    test -f "requirements.txt" || return 0
     if ! test -d ".venv"; then
         printf "create .venv\n"
         python -m venv .venv || return
