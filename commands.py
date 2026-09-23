@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import codecs
 import argparse
 import subprocess
 from pathlib import Path
@@ -67,10 +68,15 @@ class Autosol(JsaCommand):
                 with open(output_parsed, 'wb', buffering=0) as sol_log:
                     if proc.stdout is None:
                         raise JsaExceptions.JsaRuntimeError("proc.stdout is None")
+                    decoder = codecs.getincrementaldecoder('utf-8')(errors='surrogateescape')
                     while chunk := proc.stdout.read1():
-                        sys.stdout.write(chunk.decode(encoding='utf-8', errors='ignore'))
-                        sys.stdout.flush()
+                        if text := decoder.decode(chunk):
+                            sys.stdout.write(text)
+                            sys.stdout.flush()
                         sol_log.write(chunk)
+                    if text := decoder.decode(b'', final=True):
+                        sys.stdout.write(text)
+                        sys.stdout.flush()
             return proc.wait()
         else:
             print(f"will save SOL log to: {output_parsed}")
