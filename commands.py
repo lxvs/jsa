@@ -67,15 +67,13 @@ class Autosol(JsaCommand):
         if proc:
             if output_parsed:
                 colorama.just_fix_windows_console()
-                with open(output_parsed, 'w', encoding='utf-8', errors='ignore') as sol_log:
+                with open(output_parsed, 'wb', buffering=0) as sol_log:
                     if proc.stdout is None:
                         raise JsaExceptions.JsaRuntimeError("proc.stdout is None")
-                    while byte := proc.stdout.read(1):
-                        char = byte.decode(encoding='utf-8', errors='ignore')
-                        sys.stdout.write(char)
+                    while chunk := proc.stdout.read1():
+                        sys.stdout.write(chunk.decode(encoding='utf-8', errors='ignore'))
                         sys.stdout.flush()
-                        sol_log.write(char)
-                        sol_log.flush()
+                        sol_log.write(chunk)
             return proc.wait()
         else:
             print(f"will save SOL log to: {output_parsed}")
