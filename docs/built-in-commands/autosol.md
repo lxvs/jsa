@@ -22,7 +22,7 @@ jsa [<jsa_options>] autosol [<option> ...]
 \--power-off
 : Perform power off. This is the default.
 
-\--no-power-off
+-n, \--no-power-off
 : Do not perform power off, and disable `--sleep`.
 
 \--sleep SECONDS
